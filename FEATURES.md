@@ -488,7 +488,7 @@
 ## 15. Tests & Qualité
 
 ### 15.1 Tests Backend
-- 🚧 Tests unitaires des services
+- ✅ Tests unitaires des services
 - 🚧 Tests d'intégration des contrôleurs
 - 🚧 Tests de repository
 - ⏳ Tests de sécurité
@@ -566,7 +566,7 @@
 - Dashboard organisation/personnel
 - Interface calendrier
 - Suivi visuel des habitudes
-- Tests (en partie)
+- Tests unitaires des services (complets)
 
 ### ⏳ Fonctionnalités prioritaires à venir
 1. **Analytics & Dashboards avancés** (KPIs, graphiques, rapports)
