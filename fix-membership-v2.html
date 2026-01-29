@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixer les relations membres-organisations</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #3B82F6;
+            margin-bottom: 20px;
+        }
+        .step {
+            background: #f8fafc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3B82F6;
+        }
+        .warning {
+            background: #FEF3C7;
+            border-left-color: #F59E0B;
+            color: #78350F;
+        }
+        button {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+        button:hover {
+            background: #2563EB;
+        }
+        button:disabled {
+            background: #94A3B8;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success {
+            background: #DCFCE7;
+            border: 1px solid #22C55E;
+            color: #166534;
+        }
+        .error {
+            background: #FEE2E2;
+            border: 1px solid #EF4444;
+            color: #991B1B;
+        }
+        .info {
+            background: #DBEAFE;
+            border: 1px solid #3B82F6;
+            color: #1E40AF;
+        }
+        .user-info {
+            background: #E0E7FF;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fixer les relations membres-organisations</h1>
+
+        <div class="step warning">
+            <h3>⚠️ IMPORTANT</h3>
+            <p><strong>Tu dois être connecté sur l'application avant d'utiliser cette page!</strong></p>
+            <p>Si tu n'es pas connecté, va d'abord sur <a href="http://localhost:5175" target="_blank">http://localhost:5175</a> et connecte-toi.</p>
+        </div>
+
+        <div id="userInfo" class="user-info" style="display: none;">
+            <h3>👤 Connecté en tant que:</h3>
+            <div id="userDetails"></div>
+        </div>
+
+        <div class="step">
+            <h3>Étape 1: Créer les relations manquantes</h3>
+            <p>Ce bouton va automatiquement créer les relations membre-organisation qui manquent dans la base de données.</p>
+            <button onclick="fixMembership()" id="fixBtn">🔧 Fixer les relations</button>
+        </div>
+
+        <div id="result"></div>
+
+        <div class="step" style="margin-top: 30px;">
+            <h3>Si ça ne marche toujours pas après le fix:</h3>
+            <p>Dans la console de ton navigateur (F12), tape:</p>
+            <div class="code">
+localStorage.clear();<br>
+location.reload();
+            </div>
+            <p>Puis reconnecte-toi et crée une nouvelle organisation.</p>
+        </div>
+    </div>
+
+    <script>
+        async function fixMembership() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('fixBtn');
+
+            // Vérifier si on a un token
+            const token = localStorage.getItem('hubz-auth');
+            if (!token) {
+                showResult('error', '❌ Aucun token trouvé.<br><br>1. Va sur <a href="http://localhost:5175" target="_blank">http://localhost:5175</a><br>2. Connecte-toi avec ton compte<br>3. Reviens sur cette page<br>4. Rafraîchis (F5)');
+                return;
+            }
+
+            // Parser le token
+            let authData;
+            try {
+                authData = JSON.parse(token);
+            } catch (e) {
+                showResult('error', '❌ Token invalide. Reconnecte-toi sur l\'application et rafraîchis cette page.');
+                return;
+            }
+
+            if (!authData.state || !authData.state.token) {
+                showResult('error', '❌ Token manquant. Reconnecte-toi sur l\'application.');
+                return;
+            }
+
+            const jwtToken = authData.state.token;
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Traitement en cours...';
+            showResult('info', '⏳ Création des relations en cours...<br>Cela peut prendre quelques secondes.');
+
+            try {
+                const response = await fetch('http://localhost:8080/api/fix/membership', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erreur ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+
+                let message = `✅ <strong>${data.message}</strong><br><br>`;
+                message += `<strong>User ID:</strong> ${data.userId}<br>`;
+                message += `<strong>Email:</strong> ${data.email}<br><br>`;
+
+                if (data.fixedOrganizations && data.fixedOrganizations.length > 0) {
+                    message += `<strong>✨ Organisations fixées (${data.fixedOrganizations.length}):</strong><br>`;
+                    data.fixedOrganizations.forEach(org => {
+                        message += `• ${org}<br>`;
+                    });
+                    message += `<br><strong>🎉 Maintenant retourne sur l'application et rafraîchis la page!</strong>`;
+                } else {
+                    message += `<br>ℹ️ Toutes les organisations étaient déjà correctement configurées.<br><br>`;
+                    message += `Si tu as toujours des erreurs 403, essaie de:<br>`;
+                    message += `1. Vider le localStorage (voir instructions ci-dessous)<br>`;
+                    message += `2. Te reconnecter<br>`;
+                    message += `3. Créer une nouvelle organisation`;
+                }
+
+                showResult('success', message);
+
+            } catch (error) {
+                let errorMsg = '❌ <strong>Erreur de connexion</strong><br><br>';
+                errorMsg += error.message + '<br><br>';
+                errorMsg += '<strong>Vérifications:</strong><br>';
+                errorMsg += '1. Le backend est-il démarré sur le port 8080?<br>';
+                errorMsg += '2. Es-tu connecté sur l\'application?<br>';
+                errorMsg += '3. Ton token est-il valide?<br><br>';
+                errorMsg += '<strong>Pour vérifier le backend:</strong><br>';
+                errorMsg += 'Ouvre <a href="http://localhost:8080/swagger-ui.html" target="_blank">http://localhost:8080/swagger-ui.html</a>';
+
+                showResult('error', errorMsg);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔧 Fixer les relations';
+            }
+        }
+
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = type;
+            resultDiv.innerHTML = message;
+            resultDiv.style.display = 'block';
+        }
+
+        // Afficher les infos au chargement
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('hubz-auth');
+            if (token) {
+                try {
+                    const authData = JSON.parse(token);
+                    if (authData.state && authData.state.user) {
+                        const userInfo = document.getElementById('userInfo');
+                        const userDetails = document.getElementById('userDetails');
+                        userDetails.innerHTML = `
+                            <p><strong>Nom:</strong> ${authData.state.user.firstName} ${authData.state.user.lastName}</p>
+                            <p><strong>Email:</strong> ${authData.state.user.email}</p>
+                            <p style="color: #22C55E; margin-top: 10px;">✅ Token trouvé - Tu peux cliquer sur le bouton ci-dessous</p>
+                        `;
+                        userInfo.style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Error parsing token:', e);
+                }
+            } else {
+                showResult('error', '❌ Aucun token trouvé.<br><br><strong>Instructions:</strong><br>1. Va sur <a href="http://localhost:5175" target="_blank">http://localhost:5175</a><br>2. Connecte-toi avec ton compte<br>3. Reviens sur cette page<br>4. Rafraîchis (F5)');
+            }
+        });
+    </script>
+</body>
+</html>

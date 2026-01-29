@@ -1,0 +1,419 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.hubz:hubz-backend >------------------------
+[INFO] Building hubz-backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ hubz-backend ---
+[INFO] Deleting /Users/yacinebask/hubz/hubz-backend/target
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (prepare-agent) @ hubz-backend ---
+[INFO] argLine set to -javaagent:/Users/yacinebask/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar=destfile=/Users/yacinebask/hubz/hubz-backend/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hubz-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ hubz-backend ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 179 source files with javac [debug release 21] to target/classes
+[INFO] 
+[INFO] >>> spring-boot:3.2.0:run (default-cli) > test-compile @ hubz-backend >>>
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (prepare-agent) @ hubz-backend ---
+[INFO] argLine set to -javaagent:/Users/yacinebask/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar=destfile=/Users/yacinebask/hubz/hubz-backend/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hubz-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ hubz-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ hubz-backend ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ hubz-backend ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 4 source files with javac [debug release 21] to target/test-classes
+[WARNING] The following options were not recognized by any processor: '[mapstruct.defaultComponentModel]'
+[INFO] 
+[INFO] <<< spring-boot:3.2.0:run (default-cli) < test-compile @ hubz-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.0:run (default-cli) @ hubz-backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+2026-01-28T04:59:27.555+01:00  INFO 71535 --- [hubz-backend] [           main] com.hubz.HubzApplication                 : Starting HubzApplication using Java 21.0.4 with PID 71535 (/Users/yacinebask/hubz/hubz-backend/target/classes started by yacinebask in /Users/yacinebask/hubz/hubz-backend)
+2026-01-28T04:59:27.556+01:00  INFO 71535 --- [hubz-backend] [           main] com.hubz.HubzApplication                 : The following 1 profile is active: "dev"
+2026-01-28T04:59:27.911+01:00  INFO 71535 --- [hubz-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-28T04:59:27.956+01:00  INFO 71535 --- [hubz-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 40 ms. Found 13 JPA repository interfaces.
+2026-01-28T04:59:28.210+01:00  INFO 71535 --- [hubz-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-28T04:59:28.215+01:00  INFO 71535 --- [hubz-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-28T04:59:28.215+01:00  INFO 71535 --- [hubz-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.16]
+2026-01-28T04:59:28.240+01:00  INFO 71535 --- [hubz-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-28T04:59:28.240+01:00  INFO 71535 --- [hubz-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 666 ms
+2026-01-28T04:59:28.254+01:00  INFO 71535 --- [hubz-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-28T04:59:28.375+01:00  INFO 71535 --- [hubz-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:file:./data/hubzdb user=SA
+2026-01-28T04:59:28.376+01:00  INFO 71535 --- [hubz-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-28T04:59:28.380+01:00  INFO 71535 --- [hubz-backend] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:file:./data/hubzdb'
+2026-01-28T04:59:28.445+01:00  INFO 71535 --- [hubz-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-28T04:59:28.476+01:00  INFO 71535 --- [hubz-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.3.1.Final
+2026-01-28T04:59:28.493+01:00  INFO 71535 --- [hubz-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-28T04:59:28.602+01:00  INFO 71535 --- [hubz-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-28T04:59:28.625+01:00  WARN 71535 --- [hubz-backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-28T04:59:29.072+01:00  INFO 71535 --- [hubz-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: create table organization_documents (id uuid not null, content_type varchar(255), file_name varchar(255) not null, file_path varchar(255) not null, file_size bigint not null, organization_id uuid not null, original_file_name varchar(255) not null, uploaded_at timestamp(6) not null, uploaded_by uuid not null, primary key (id))
+Hibernate: alter table if exists habit_logs drop constraint if exists UKstnovr6ov9vf1dxq8d69opv76
+Hibernate: alter table if exists habit_logs add constraint UKstnovr6ov9vf1dxq8d69opv76 unique (habit_id, date)
+Hibernate: alter table if exists organization_members drop constraint if exists UKnnmwci8gq8t1s9cuokrj4vd6k
+Hibernate: alter table if exists organization_members add constraint UKnnmwci8gq8t1s9cuokrj4vd6k unique (organization_id, user_id)
+Hibernate: alter table if exists team_members drop constraint if exists UKmreuu88ksu0sw6wy64dqa1cv3
+Hibernate: alter table if exists team_members add constraint UKmreuu88ksu0sw6wy64dqa1cv3 unique (team_id, user_id)
+2026-01-28T04:59:29.099+01:00  INFO 71535 --- [hubz-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-28T04:59:29.314+01:00  INFO 71535 --- [hubz-backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-28T04:59:29.715+01:00  WARN 71535 --- [hubz-backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-28T04:59:29.724+01:00  WARN 71535 --- [hubz-backend] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 63a8d283-cfd8-4ff7-8c51-efbb2a47ef8e
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-01-28T04:59:29.857+01:00  INFO 71535 --- [hubz-backend] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@35852b6, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@27d6ff8c, org.springframework.security.web.context.SecurityContextHolderFilter@74fbee59, org.springframework.security.web.header.HeaderWriterFilter@5b52ce28, org.springframework.web.filter.CorsFilter@105c253a, org.springframework.security.web.authentication.logout.LogoutFilter@4f143176, com.hubz.infrastructure.security.JwtAuthenticationFilter@70091872, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@737e4a7b, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@5f5caea5, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@156322ce, org.springframework.security.web.session.SessionManagementFilter@1f9b86f5, org.springframework.security.web.access.ExceptionTranslationFilter@17a5cb99, org.springframework.security.web.access.intercept.AuthorizationFilter@2110b756]
+2026-01-28T04:59:29.980+01:00  INFO 71535 --- [hubz-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-01-28T04:59:29.984+01:00  INFO 71535 --- [hubz-backend] [           main] com.hubz.HubzApplication                 : Started HubzApplication in 2.605 seconds (process running for 2.805)
+2026-01-28T04:59:41.566+01:00  INFO 71535 --- [hubz-backend] [nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-01-28T04:59:41.566+01:00  INFO 71535 --- [hubz-backend] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-01-28T04:59:41.568+01:00  INFO 71535 --- [hubz-backend] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-01-28T04:59:41.648+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-8] o.s.w.s.h.HandlerMappingIntrospector     : Cache miss for REQUEST dispatch to '/api/organizations' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-01-28T04:59:41.666+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-9] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:41.666+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-7] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:41.677+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-6] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:41.677+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-1] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+2026-01-28T04:59:45.831+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-6] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:45.848+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-1] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.337+01:00  WARN 71535 --- [hubz-backend] [io-8080-exec-10] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.337+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-2] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.337+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-4] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.343+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-9] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.343+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-6] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.344+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-1] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.862+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-6] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+2026-01-28T04:59:46.865+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-1] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: {ton-org-id}]
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.organization_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ode1_0.id,ode1_0.content_type,ode1_0.file_name,ode1_0.file_path,ode1_0.file_size,ode1_0.organization_id,ode1_0.original_file_name,ode1_0.uploaded_at,ode1_0.uploaded_by from organization_documents ode1_0 where ode1_0.organization_id=?
+Hibernate: select ne1_0.id,ne1_0.category,ne1_0.content,ne1_0.created_at,ne1_0.created_by_id,ne1_0.organization_id,ne1_0.title,ne1_0.updated_at from notes ne1_0 where ne1_0.organization_id=? order by ne1_0.updated_at desc
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ode1_0.id,ode1_0.content_type,ode1_0.file_name,ode1_0.file_path,ode1_0.file_size,ode1_0.organization_id,ode1_0.original_file_name,ode1_0.uploaded_at,ode1_0.uploaded_by from organization_documents ode1_0 where ode1_0.organization_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ne1_0.id,ne1_0.category,ne1_0.content,ne1_0.created_at,ne1_0.created_by_id,ne1_0.organization_id,ne1_0.title,ne1_0.updated_at from notes ne1_0 where ne1_0.organization_id=? order by ne1_0.updated_at desc
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.created_at,te1_0.description,te1_0.name,te1_0.organization_id from teams te1_0 where te1_0.organization_id=? order by te1_0.created_at desc
+Hibernate: select tme1_0.id,tme1_0.joined_at,tme1_0.team_id,tme1_0.user_id from team_members tme1_0 where tme1_0.team_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.created_at,te1_0.description,te1_0.name,te1_0.organization_id from teams te1_0 where te1_0.organization_id=? order by te1_0.created_at desc
+Hibernate: select tme1_0.id,tme1_0.joined_at,tme1_0.team_id,tme1_0.user_id from team_members tme1_0 where tme1_0.team_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ee1_0.id,ee1_0.created_at,ee1_0.description,ee1_0.end_time,ee1_0.objective,ee1_0.organization_id,ee1_0.start_time,ee1_0.title,ee1_0.updated_at,ee1_0.user_id from events ee1_0 where ee1_0.organization_id=? order by ee1_0.start_time
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ee1_0.id,ee1_0.created_at,ee1_0.description,ee1_0.end_time,ee1_0.objective,ee1_0.organization_id,ee1_0.start_time,ee1_0.title,ee1_0.updated_at,ee1_0.user_id from events ee1_0 where ee1_0.organization_id=? order by ee1_0.start_time
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ne1_0.id,ne1_0.category,ne1_0.content,ne1_0.created_at,ne1_0.created_by_id,ne1_0.organization_id,ne1_0.title,ne1_0.updated_at from notes ne1_0 where ne1_0.organization_id=? order by ne1_0.updated_at desc
+Hibernate: select ode1_0.id,ode1_0.content_type,ode1_0.file_name,ode1_0.file_path,ode1_0.file_size,ode1_0.organization_id,ode1_0.original_file_name,ode1_0.uploaded_at,ode1_0.uploaded_by from organization_documents ode1_0 where ode1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ne1_0.id,ne1_0.category,ne1_0.content,ne1_0.created_at,ne1_0.created_by_id,ne1_0.organization_id,ne1_0.title,ne1_0.updated_at from notes ne1_0 where ne1_0.organization_id=? order by ne1_0.updated_at desc
+Hibernate: select ode1_0.id,ode1_0.content_type,ode1_0.file_name,ode1_0.file_path,ode1_0.file_size,ode1_0.organization_id,ode1_0.original_file_name,ode1_0.uploaded_at,ode1_0.uploaded_by from organization_documents ode1_0 where ode1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ode1_0.id,ode1_0.content_type,ode1_0.file_name,ode1_0.file_path,ode1_0.file_size,ode1_0.organization_id,ode1_0.original_file_name,ode1_0.uploaded_at,ode1_0.uploaded_by from organization_documents ode1_0 where ode1_0.id=?
+Hibernate: insert into organization_documents (content_type,file_name,file_path,file_size,organization_id,original_file_name,uploaded_at,uploaded_by,id) values (?,?,?,?,?,?,?,?,?)
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ode1_0.id,ode1_0.content_type,ode1_0.file_name,ode1_0.file_path,ode1_0.file_size,ode1_0.organization_id,ode1_0.original_file_name,ode1_0.uploaded_at,ode1_0.uploaded_by from organization_documents ode1_0 where ode1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ode1_0.id,ode1_0.content_type,ode1_0.file_name,ode1_0.file_path,ode1_0.file_size,ode1_0.organization_id,ode1_0.original_file_name,ode1_0.uploaded_at,ode1_0.uploaded_by from organization_documents ode1_0 where ode1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+2026-01-28T05:00:03.083+01:00  WARN 71535 --- [hubz-backend] [nio-8080-exec-9] o.apache.coyote.http11.Http11Processor   : The HTTP response header [Content-Disposition] with value [attachment; filename="Projet Caprojet – Application de Santé & Voyage.pdf"] has been removed from the response because it is invalid
+
+java.lang.IllegalArgumentException: The Unicode character [–] at code point [8,211] cannot be encoded as it is outside the permitted range of 0 to 255
+	at org.apache.tomcat.util.buf.MessageBytes.toBytesSimple(MessageBytes.java:310) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.tomcat.util.buf.MessageBytes.toBytes(MessageBytes.java:283) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.http11.Http11OutputBuffer.write(Http11OutputBuffer.java:389) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.http11.Http11OutputBuffer.sendHeader(Http11OutputBuffer.java:368) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.http11.Http11Processor.prepareResponse(Http11Processor.java:1049) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.AbstractProcessor.action(AbstractProcessor.java:377) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.Response.action(Response.java:208) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.http11.Http11OutputBuffer.doWrite(Http11OutputBuffer.java:187) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.Response.doWrite(Response.java:616) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.connector.OutputBuffer.realWriteBytes(OutputBuffer.java:331) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.connector.OutputBuffer.appendByteArray(OutputBuffer.java:743) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.connector.OutputBuffer.append(OutputBuffer.java:670) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.connector.OutputBuffer.writeBytes(OutputBuffer.java:379) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.connector.OutputBuffer.write(OutputBuffer.java:357) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.connector.CoyoteOutputStream.write(CoyoteOutputStream.java:97) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.springframework.security.web.util.OnCommittedResponseWrapper$SaveContextServletOutputStream.write(OnCommittedResponseWrapper.java:639) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at java.base/java.io.InputStream.transferTo(InputStream.java:797) ~[na:na]
+	at java.base/java.io.FileInputStream.transferTo(FileInputStream.java:390) ~[na:na]
+	at java.base/java.io.BufferedInputStream.implTransferTo(BufferedInputStream.java:652) ~[na:na]
+	at java.base/java.io.BufferedInputStream.transferTo(BufferedInputStream.java:631) ~[na:na]
+	at org.springframework.http.converter.ResourceHttpMessageConverter.writeContent(ResourceHttpMessageConverter.java:149) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.http.converter.ResourceHttpMessageConverter.writeInternal(ResourceHttpMessageConverter.java:138) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.http.converter.ResourceHttpMessageConverter.writeInternal(ResourceHttpMessageConverter.java:46) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.http.converter.AbstractHttpMessageConverter.write(AbstractHttpMessageConverter.java:236) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor.writeWithMessageConverters(AbstractMessageConverterMethodProcessor.java:300) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor.handleReturnValue(HttpEntityMethodProcessor.java:245) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite.handleReturnValue(HandlerMethodReturnValueHandlerComposite.java:78) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:136) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:917) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:829) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.16.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.1.jar:6.1.1]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.16.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:365) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at com.hubz.infrastructure.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:49) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.2.0.jar:6.2.0]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.1.jar:6.1.1]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:340) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) ~[tomcat-embed-core-10.1.16.jar:10.1.16]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: insert into notes (category,content,created_at,created_by_id,organization_id,title,updated_at,id) values (?,?,?,?,?,?,?,?)
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ne1_0.id,ne1_0.category,ne1_0.content,ne1_0.created_at,ne1_0.created_by_id,ne1_0.organization_id,ne1_0.title,ne1_0.updated_at from notes ne1_0 where ne1_0.organization_id=? order by ne1_0.updated_at desc
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ee1_0.id,ee1_0.created_at,ee1_0.description,ee1_0.end_time,ee1_0.objective,ee1_0.organization_id,ee1_0.start_time,ee1_0.title,ee1_0.updated_at,ee1_0.user_id from events ee1_0 where ee1_0.organization_id=? order by ee1_0.start_time
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ee1_0.id,ee1_0.created_at,ee1_0.description,ee1_0.end_time,ee1_0.objective,ee1_0.organization_id,ee1_0.start_time,ee1_0.title,ee1_0.updated_at,ee1_0.user_id from events ee1_0 where ee1_0.organization_id=? order by ee1_0.start_time
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.organization_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ge1_0.id,ge1_0.created_at,ge1_0.deadline,ge1_0.description,ge1_0.organization_id,ge1_0.title,ge1_0.type,ge1_0.updated_at,ge1_0.user_id from goals ge1_0 where ge1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.organization_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.goal_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.created_at,te1_0.description,te1_0.name,te1_0.organization_id from teams te1_0 where te1_0.organization_id=? order by te1_0.created_at desc
+Hibernate: select tme1_0.id,tme1_0.joined_at,tme1_0.team_id,tme1_0.user_id from team_members tme1_0 where tme1_0.team_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.created_at,te1_0.description,te1_0.name,te1_0.organization_id from teams te1_0 where te1_0.organization_id=? order by te1_0.created_at desc
+Hibernate: select tme1_0.id,tme1_0.joined_at,tme1_0.team_id,tme1_0.user_id from team_members tme1_0 where tme1_0.team_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.organization_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.assignee_id,te1_0.created_at,te1_0.creator_id,te1_0.description,te1_0.due_date,te1_0.goal_id,te1_0.organization_id,te1_0.priority,te1_0.status,te1_0.title,te1_0.updated_at from tasks te1_0 where te1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.created_at,te1_0.description,te1_0.name,te1_0.organization_id from teams te1_0 where te1_0.organization_id=? order by te1_0.created_at desc
+Hibernate: select tme1_0.id,tme1_0.joined_at,tme1_0.team_id,tme1_0.user_id from team_members tme1_0 where tme1_0.team_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select te1_0.id,te1_0.created_at,te1_0.description,te1_0.name,te1_0.organization_id from teams te1_0 where te1_0.organization_id=? order by te1_0.created_at desc
+Hibernate: select tme1_0.id,tme1_0.joined_at,tme1_0.team_id,tme1_0.user_id from team_members tme1_0 where tme1_0.team_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.email=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=? and ome1_0.user_id=?
+Hibernate: select oe1_0.id,oe1_0.color,oe1_0.created_at,oe1_0.description,oe1_0.icon,oe1_0.name,oe1_0.owner_id,oe1_0.readme from organizations oe1_0 where oe1_0.id=?
+Hibernate: select ome1_0.id,ome1_0.joined_at,ome1_0.organization_id,ome1_0.role,ome1_0.user_id from organization_members ome1_0 where ome1_0.organization_id=?
+Hibernate: select ue1_0.id,ue1_0.created_at,ue1_0.description,ue1_0.email,ue1_0.first_name,ue1_0.last_name,ue1_0.password,ue1_0.updated_at from users ue1_0 where ue1_0.id=?
+2026-01-28T05:13:50.295+01:00  INFO 71535 --- [hubz-backend] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-28T05:13:50.300+01:00  INFO 71535 --- [hubz-backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-28T05:13:50.510+01:00  INFO 71535 --- [hubz-backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  14:28 min
+[INFO] Finished at: 2026-01-28T05:13:50+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.0:run (default-cli) on project hubz-backend: Process terminated with exit code: 143 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

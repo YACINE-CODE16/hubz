@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnostic & Fix 403</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #3B82F6;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #2563EB;
+        }
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+        button.fix {
+            background: #22C55E;
+        }
+        button.fix:hover {
+            background: #16A34A;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        .info {
+            background: #1e40af20;
+            border: 1px solid #3B82F6;
+        }
+        .success {
+            background: #16a34a20;
+            border: 1px solid #22C55E;
+        }
+        .error {
+            background: #dc262620;
+            border: 1px solid #EF4444;
+        }
+        .warning {
+            background: #ca8a0420;
+            border: 1px solid #F59E0B;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background: #0f172a;
+            color: #3B82F6;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #334155;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge.yes {
+            background: #22C55E;
+            color: white;
+        }
+        .badge.no {
+            background: #EF4444;
+            color: white;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+        .spinner {
+            border: 3px solid #334155;
+            border-top: 3px solid #3B82F6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnostic des Erreurs 403</h1>
+        <p class="subtitle">Vérifie l'état des relations membre-organisation</p>
+
+        <button onclick="runDiagnostic()" id="diagBtn">📊 Lancer le diagnostic</button>
+        <button onclick="fixMembership()" id="fixBtn" class="fix" style="display:none;">🔧 Réparer maintenant</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let hasProblems = false;
+
+        async function runDiagnostic() {
+            const resultDiv = document.getElementById('result');
+            const diagBtn = document.getElementById('diagBtn');
+            const fixBtn = document.getElementById('fixBtn');
+
+            const token = localStorage.getItem('hubz-auth');
+            if (!token) {
+                showResult('error', '❌ Aucun token trouvé.<br><br>Connecte-toi d\'abord sur <a href="http://localhost:5175" style="color:#3B82F6" target="_blank">l\'application</a>, puis rafraîchis cette page.');
+                return;
+            }
+
+            let authData;
+            try {
+                authData = JSON.parse(token);
+            } catch (e) {
+                showResult('error', '❌ Token invalide. Reconnecte-toi.');
+                return;
+            }
+
+            if (!authData.state || !authData.state.token) {
+                showResult('error', '❌ Token manquant. Reconnecte-toi.');
+                return;
+            }
+
+            const jwtToken = authData.state.token;
+
+            diagBtn.disabled = true;
+            diagBtn.textContent = '⏳ Diagnostic en cours...';
+
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Analyse de la base de données...</div>';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch('http://localhost:8080/api/debug/membership-status', {
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                showResult('error', `❌ Erreur: ${error.message}<br><br>Le backend est-il démarré? <a href="http://localhost:8080/swagger-ui.html" style="color:#3B82F6" target="_blank">Vérifier</a>`);
+            } finally {
+                diagBtn.disabled = false;
+                diagBtn.textContent = '🔄 Re-diagnostiquer';
+            }
+        }
+
+        function displayResults(data) {
+            const resultDiv = document.getElementById('result');
+            const fixBtn = document.getElementById('fixBtn');
+            hasProblems = false;
+
+            let html = '<div class="result info">';
+            html += '<h3>👤 Utilisateur connecté</h3>';
+            html += `<p><strong>Email:</strong> ${data.email}</p>`;
+            html += `<p><strong>Nom:</strong> ${data.name}</p>`;
+            html += `<p><strong>ID:</strong> ${data.userId}</p>`;
+            html += '</div>';
+
+            html += '<div class="result">';
+            html += '<h3>📋 État des organisations</h3>';
+
+            if (data.organizations.length === 0) {
+                html += '<p style="color:#94a3b8">Aucune organisation trouvée.</p>';
+            } else {
+                html += '<table>';
+                html += '<thead><tr><th>Organisation</th><th>Propriétaire?</th><th>Membre?</th><th>Rôle</th><th>Problème</th></tr></thead>';
+                html += '<tbody>';
+
+                data.organizations.forEach(org => {
+                    const problem = org.isOwner && !org.isMember;
+                    if (problem) hasProblems = true;
+
+                    html += '<tr>';
+                    html += `<td><strong>${org.orgName}</strong><br><small style="color:#94a3b8">${org.orgId}</small></td>`;
+                    html += `<td><span class="badge ${org.isOwner ? 'yes' : 'no'}">${org.isOwner ? 'OUI' : 'NON'}</span></td>`;
+                    html += `<td><span class="badge ${org.isMember ? 'yes' : 'no'}">${org.isMember ? 'OUI' : 'NON'}</span></td>`;
+                    html += `<td>${org.role || '-'}</td>`;
+                    html += `<td style="color:${problem ? '#EF4444' : '#22C55E'};font-weight:bold">${problem ? '⚠️ ERREUR 403' : '✅ OK'}</td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+            }
+
+            html += '</div>';
+
+            if (hasProblems) {
+                html += '<div class="result warning">';
+                html += '<h3>⚠️ Problème détecté!</h3>';
+                html += '<p>Tu es propriétaire d\'une ou plusieurs organisations mais tu n\'es pas enregistré comme membre.</p>';
+                html += '<p><strong>Conséquence:</strong> Erreur 403 quand tu essaies d\'accéder aux ressources.</p>';
+                html += '<p><strong>Solution:</strong> Clique sur le bouton "Réparer maintenant" ci-dessus.</p>';
+                html += '</div>';
+                fixBtn.style.display = 'inline-block';
+            } else {
+                html += '<div class="result success">';
+                html += '<h3>✅ Tout est OK!</h3>';
+                html += '<p>Toutes les relations membre-organisation sont correctes.</p>';
+                html += '<p>Si tu as toujours des erreurs 403, essaie de te déconnecter/reconnecter.</p>';
+                html += '</div>';
+                fixBtn.style.display = 'none';
+            }
+
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        }
+
+        async function fixMembership() {
+            const fixBtn = document.getElementById('fixBtn');
+            const token = localStorage.getItem('hubz-auth');
+            const authData = JSON.parse(token);
+            const jwtToken = authData.state.token;
+
+            fixBtn.disabled = true;
+            fixBtn.textContent = '⏳ Réparation...';
+
+            try {
+                const response = await fetch('http://localhost:8080/api/fix/membership', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('success', `✅ <strong>${data.message}</strong><br><br>Organisations fixées: ${data.fixedOrganizations.join(', ')}<br><br>🎉 Retourne sur l'application et rafraîchis!`);
+
+                    setTimeout(() => {
+                        runDiagnostic();
+                    }, 2000);
+                } else {
+                    showResult('error', `❌ Erreur: ${data.error}`);
+                }
+            } catch (error) {
+                showResult('error', `❌ Erreur: ${error.message}`);
+            } finally {
+                fixBtn.disabled = false;
+                fixBtn.textContent = '🔧 Réparer maintenant';
+            }
+        }
+
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result ' + type;
+            resultDiv.innerHTML = message;
+            resultDiv.style.display = 'block';
+        }
+
+        // Auto-run diagnostic on load
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostic, 500);
+        });
+    </script>
+</body>
+</html>
