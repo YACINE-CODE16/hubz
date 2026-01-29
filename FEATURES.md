@@ -166,9 +166,9 @@
 - ⏳ Événements récurrents
 
 ### 6.3 Interface calendrier
-- 🚧 Vue mensuelle
-- 🚧 Vue hebdomadaire
-- 🚧 Vue journalière
+- ✅ Vue mensuelle
+- ✅ Vue hebdomadaire
+- ✅ Vue journalière
 - ⏳ Intégration Google Calendar / Outlook
 - ⏳ Export iCal
 
