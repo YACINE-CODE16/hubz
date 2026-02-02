@@ -13,4 +13,8 @@ public class AccessDeniedException extends RuntimeException {
     public static AccessDeniedException notAdmin() {
         return new AccessDeniedException("You must be an admin or owner to perform this action");
     }
+
+    public static AccessDeniedException notAuthor() {
+        return new AccessDeniedException("You can only modify your own content");
+    }
 }

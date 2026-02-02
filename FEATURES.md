@@ -106,7 +106,12 @@
 - ⏳ Tags/labels
 - ⏳ Checklist dans une tâche
 - ⏳ Pièces jointes
-- ⏳ Commentaires sur les tâches
+- ✅ Commentaires sur les taches
+  - ✅ CRUD commentaires (creation, modification, suppression)
+  - ✅ Reponses imbriquees (threaded comments)
+  - ✅ Affichage auteur et date
+  - ✅ Indicateur "modifie"
+  - ✅ Permissions (auteur ou admin peut supprimer)
 - ⏳ Historique des modifications
 
 ### 4.3 Interface utilisateur
@@ -413,7 +418,7 @@
 - ⏳ Rappels d'échéance
 
 ### 11.3 Communication interne
-- ⏳ Commentaires sur tâches
+- ✅ Commentaires sur taches
 - ⏳ Mentions (@user)
 - ⏳ Chat d'équipe
 - ⏳ Messagerie directe

@@ -5,6 +5,7 @@ import type { Goal } from '../../types/goal';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import TaskComments from './TaskComments';
 import { cn } from '../../lib/utils';
 
 const statusOptions: { value: TaskStatus; label: string; accent: string }[] = [
@@ -242,6 +243,9 @@ export default function TaskDetailModal({
         <p className="text-xs text-gray-400 dark:text-gray-500">
           Creee le {formatDate(task.createdAt)}
         </p>
+
+        {/* Comments */}
+        <TaskComments taskId={task.id} />
 
         {/* Actions */}
         <div className="flex gap-2 border-t border-gray-200/50 dark:border-white/10 pt-4">

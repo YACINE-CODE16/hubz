@@ -37,3 +37,25 @@ export interface UpdateTaskRequest {
 export interface UpdateTaskStatusRequest {
   status: TaskStatus;
 }
+
+export interface TaskComment {
+  id: string;
+  taskId: string;
+  authorId: string;
+  authorName: string;
+  content: string;
+  parentCommentId: string | null;
+  replies: TaskComment[];
+  createdAt: string;
+  updatedAt: string;
+  edited: boolean;
+}
+
+export interface CreateTaskCommentRequest {
+  content: string;
+  parentCommentId?: string;
+}
+
+export interface UpdateTaskCommentRequest {
+  content: string;
+}
