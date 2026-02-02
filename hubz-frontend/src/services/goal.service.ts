@@ -1,6 +1,7 @@
 import api from './api';
 import type {
   Goal,
+  GoalAnalytics,
   CreateGoalRequest,
   UpdateGoalRequest,
 } from '../types/goal';
@@ -33,5 +34,15 @@ export const goalService = {
 
   async delete(id: string): Promise<void> {
     await api.delete(`/goals/${id}`);
+  },
+
+  async getPersonalAnalytics(): Promise<GoalAnalytics> {
+    const response = await api.get<GoalAnalytics>('/users/me/goals/analytics');
+    return response.data;
+  },
+
+  async getOrganizationAnalytics(organizationId: string): Promise<GoalAnalytics> {
+    const response = await api.get<GoalAnalytics>(`/organizations/${organizationId}/goals/analytics`);
+    return response.data;
   },
 };
