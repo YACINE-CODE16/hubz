@@ -17,4 +17,6 @@ public interface OrganizationMemberRepositoryPort {
     boolean existsByOrganizationIdAndUserId(UUID organizationId, UUID userId);
 
     void deleteByOrganizationIdAndUserId(UUID organizationId, UUID userId);
+
+    List<OrganizationMember> findByUserId(UUID userId);
 }

@@ -15,4 +15,6 @@ public interface EventRepositoryPort {
     List<Event> findByOrganizationAndTimeRange(UUID organizationId, LocalDateTime start, LocalDateTime end);
     List<Event> findPersonalEventsByTimeRange(UUID userId, LocalDateTime start, LocalDateTime end);
     void delete(Event event);
+
+    List<Event> searchByTitleOrDescription(String query, List<UUID> organizationIds, UUID userId);
 }

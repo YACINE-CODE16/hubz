@@ -31,4 +31,7 @@ public interface EventJpaRepository extends JpaRepository<EventEntity, UUID> {
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("SELECT e FROM EventEntity e WHERE (e.organizationId IN :orgIds OR (e.organizationId IS NULL AND e.userId = :userId)) AND (LOWER(e.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(e.description) LIKE LOWER(CONCAT('%', :query, '%')))")
+    List<EventEntity> searchByTitleOrDescription(@Param("query") String query, @Param("orgIds") List<UUID> organizationIds, @Param("userId") UUID userId);
 }

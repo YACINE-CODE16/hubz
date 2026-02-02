@@ -19,4 +19,6 @@ public interface TaskRepositoryPort {
     List<Task> findByGoalId(UUID goalId);
 
     void deleteById(UUID id);
+
+    List<Task> searchByTitleOrDescription(String query, List<UUID> organizationIds);
 }

@@ -16,4 +16,6 @@ public interface JpaOrganizationMemberRepository extends JpaRepository<Organizat
     boolean existsByOrganizationIdAndUserId(UUID organizationId, UUID userId);
 
     void deleteByOrganizationIdAndUserId(UUID organizationId, UUID userId);
+
+    List<OrganizationMemberEntity> findByUserId(UUID userId);
 }

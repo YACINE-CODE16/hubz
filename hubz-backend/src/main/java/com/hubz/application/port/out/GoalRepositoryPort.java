@@ -12,4 +12,6 @@ public interface GoalRepositoryPort {
     List<Goal> findByOrganizationId(UUID organizationId);
     List<Goal> findPersonalGoals(UUID userId);
     void deleteById(UUID id);
+
+    List<Goal> searchByTitle(String query, List<UUID> organizationIds, UUID userId);
 }

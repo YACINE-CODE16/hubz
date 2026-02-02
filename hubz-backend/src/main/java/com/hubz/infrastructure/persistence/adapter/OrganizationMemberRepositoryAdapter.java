@@ -49,4 +49,11 @@ public class OrganizationMemberRepositoryAdapter implements OrganizationMemberRe
     public void deleteByOrganizationIdAndUserId(UUID organizationId, UUID userId) {
         jpaRepository.deleteByOrganizationIdAndUserId(organizationId, userId);
     }
+
+    @Override
+    public List<OrganizationMember> findByUserId(UUID userId) {
+        return jpaRepository.findByUserId(userId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

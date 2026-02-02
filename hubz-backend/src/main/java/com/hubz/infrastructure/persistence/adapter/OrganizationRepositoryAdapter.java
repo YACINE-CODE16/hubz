@@ -41,4 +41,11 @@ public class OrganizationRepositoryAdapter implements OrganizationRepositoryPort
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Organization> searchByName(String query) {
+        return jpaRepository.searchByName(query).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

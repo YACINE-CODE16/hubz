@@ -390,7 +390,7 @@
 - ✅ Sidebar avec navigation personnelle
 - ✅ Header avec titre et actions
 - ✅ Breadcrumbs implicites
-- ⏳ Recherche globale
+- ✅ Recherche globale
 - ⏳ Raccourcis clavier
 
 ### 10.3 Responsive
@@ -559,6 +559,7 @@
 - CRUD Organisations complètes
 - Système d'invitation avec email
 - Gestion des roles de membres et transfert de propriete
+- Recherche globale (organisations, taches, objectifs, evenements, notes, membres)
 - CRUD Équipes
 - CRUD Tâches avec Kanban
 - CRUD Objectifs
@@ -587,7 +588,7 @@
 6. ~~Rapports exportables (PDF, CSV, Excel)~~ (DONE)
 7. ~~Changement de rôle des membres~~ (DONE)
 8. ~~Modification du profil utilisateur~~ (DONE)
-9. Recherche globale
+9. ~~Recherche globale~~ (DONE)
 10. Notifications in-app
 11. Tests complets (>70% coverage)
 12. CI/CD
