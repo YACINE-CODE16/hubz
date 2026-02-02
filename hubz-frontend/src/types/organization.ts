@@ -24,12 +24,14 @@ export interface UpdateOrganizationRequest {
   readme?: string;
 }
 
+export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
+
 export interface Member {
   id: string;
   userId: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
+  role: MemberRole;
   joinedAt: string;
 }

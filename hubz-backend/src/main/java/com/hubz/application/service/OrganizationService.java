@@ -8,7 +8,9 @@ import com.hubz.application.port.out.OrganizationMemberRepositoryPort;
 import com.hubz.application.port.out.OrganizationRepositoryPort;
 import com.hubz.application.port.out.UserRepositoryPort;
 import com.hubz.domain.enums.MemberRole;
+import com.hubz.domain.exception.CannotChangeOwnerRoleException;
 import com.hubz.domain.exception.MemberAlreadyExistsException;
+import com.hubz.domain.exception.MemberNotFoundException;
 import com.hubz.domain.exception.OrganizationNotFoundException;
 import com.hubz.domain.exception.UserNotFoundException;
 import com.hubz.domain.model.Organization;
@@ -141,6 +143,63 @@ public class OrganizationService {
     public void removeMember(UUID organizationId, UUID userId, UUID currentUserId) {
         authorizationService.checkOrganizationAdminAccess(organizationId, currentUserId);
         memberRepository.deleteByOrganizationIdAndUserId(organizationId, userId);
+    }
+
+    @Transactional
+    public MemberResponse changeMemberRole(UUID organizationId, UUID userId, MemberRole newRole, UUID currentUserId) {
+        // Only admins and owners can change roles
+        authorizationService.checkOrganizationAdminAccess(organizationId, currentUserId);
+
+        // Find the member
+        OrganizationMember member = memberRepository.findByOrganizationIdAndUserId(organizationId, userId)
+                .orElseThrow(() -> new MemberNotFoundException(organizationId, userId));
+
+        // Cannot change the owner's role (must transfer ownership instead)
+        if (member.getRole() == MemberRole.OWNER) {
+            throw new CannotChangeOwnerRoleException();
+        }
+
+        // Cannot promote someone to OWNER through role change (must use transfer ownership)
+        if (newRole == MemberRole.OWNER) {
+            throw new CannotChangeOwnerRoleException();
+        }
+
+        // Update the role
+        member.setRole(newRole);
+        OrganizationMember updated = memberRepository.save(member);
+
+        return toMemberResponse(updated);
+    }
+
+    @Transactional
+    public void transferOwnership(UUID organizationId, UUID newOwnerId, UUID currentUserId) {
+        // Only the current owner can transfer ownership
+        Organization org = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new OrganizationNotFoundException(organizationId));
+
+        if (!org.getOwnerId().equals(currentUserId)) {
+            throw new CannotChangeOwnerRoleException();
+        }
+
+        // Verify new owner is a member
+        OrganizationMember newOwnerMember = memberRepository.findByOrganizationIdAndUserId(organizationId, newOwnerId)
+                .orElseThrow(() -> new MemberNotFoundException(organizationId, newOwnerId));
+
+        // Find current owner's member record
+        OrganizationMember currentOwnerMember = memberRepository.findByOrganizationIdAndUserId(organizationId, currentUserId)
+                .orElseThrow(() -> new MemberNotFoundException(organizationId, currentUserId));
+
+        // Demote current owner to admin
+        currentOwnerMember.setRole(MemberRole.ADMIN);
+        memberRepository.save(currentOwnerMember);
+
+        // Promote new owner
+        newOwnerMember.setRole(MemberRole.OWNER);
+        memberRepository.save(newOwnerMember);
+
+        // Update organization's owner field
+        org.setOwnerId(newOwnerId);
+        organizationRepository.save(org);
     }
 
     private OrganizationResponse toResponse(Organization org) {
