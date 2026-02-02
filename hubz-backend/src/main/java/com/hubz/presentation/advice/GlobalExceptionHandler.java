@@ -12,6 +12,7 @@ import com.hubz.domain.exception.MemberAlreadyExistsException;
 import com.hubz.domain.exception.MemberNotFoundException;
 import com.hubz.domain.exception.NoteNotFoundException;
 import com.hubz.domain.exception.OrganizationNotFoundException;
+import com.hubz.domain.exception.TaskCommentNotFoundException;
 import com.hubz.domain.exception.TaskNotFoundException;
 import com.hubz.domain.exception.TeamMemberAlreadyExistsException;
 import com.hubz.domain.exception.TeamNotFoundException;
@@ -77,6 +78,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleTaskNotFound(TaskNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(TaskCommentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleTaskCommentNotFound(TaskCommentNotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
