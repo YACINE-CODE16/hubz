@@ -54,4 +54,26 @@ public class HabitLogRepositoryAdapter implements HabitLogRepositoryPort {
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public List<HabitLog> findByHabitIdInAndDateRange(List<UUID> habitIds, LocalDate startDate, LocalDate endDate) {
+        if (habitIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findByHabitIdInAndDateBetween(habitIds, startDate, endDate)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<HabitLog> findByHabitIdIn(List<UUID> habitIds) {
+        if (habitIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findByHabitIdIn(habitIds)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

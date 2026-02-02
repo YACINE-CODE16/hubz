@@ -14,4 +14,8 @@ public interface HabitLogJpaRepository extends JpaRepository<HabitLogEntity, UUI
     List<HabitLogEntity> findByHabitId(UUID habitId);
     List<HabitLogEntity> findByHabitIdAndDateBetween(UUID habitId, LocalDate startDate, LocalDate endDate);
     Optional<HabitLogEntity> findByHabitIdAndDate(UUID habitId, LocalDate date);
+
+    // Analytics methods
+    List<HabitLogEntity> findByHabitIdInAndDateBetween(List<UUID> habitIds, LocalDate startDate, LocalDate endDate);
+    List<HabitLogEntity> findByHabitIdIn(List<UUID> habitIds);
 }

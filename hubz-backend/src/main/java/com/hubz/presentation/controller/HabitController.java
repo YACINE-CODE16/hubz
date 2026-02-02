@@ -3,9 +3,11 @@ package com.hubz.presentation.controller;
 import com.hubz.application.dto.request.CreateHabitRequest;
 import com.hubz.application.dto.request.LogHabitRequest;
 import com.hubz.application.dto.request.UpdateHabitRequest;
+import com.hubz.application.dto.response.HabitAnalyticsResponse;
 import com.hubz.application.dto.response.HabitLogResponse;
 import com.hubz.application.dto.response.HabitResponse;
 import com.hubz.application.port.out.UserRepositoryPort;
+import com.hubz.application.service.HabitAnalyticsService;
 import com.hubz.application.service.HabitService;
 import com.hubz.domain.exception.UserNotFoundException;
 import jakarta.validation.Valid;
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class HabitController {
 
     private final HabitService habitService;
+    private final HabitAnalyticsService habitAnalyticsService;
     private final UserRepositoryPort userRepositoryPort;
 
     @GetMapping("/api/users/me/habits")
@@ -74,6 +77,12 @@ public class HabitController {
             Authentication authentication) {
         UUID userId = resolveUserId(authentication);
         return ResponseEntity.ok(habitService.getHabitLogs(id, userId));
+    }
+
+    @GetMapping("/api/users/me/habits/analytics")
+    public ResponseEntity<HabitAnalyticsResponse> getHabitAnalytics(Authentication authentication) {
+        UUID userId = resolveUserId(authentication);
+        return ResponseEntity.ok(habitAnalyticsService.getAnalytics(userId));
     }
 
     private UUID resolveUserId(Authentication authentication) {
