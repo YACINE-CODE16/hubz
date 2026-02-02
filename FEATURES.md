@@ -339,11 +339,11 @@
 ### 9.9 Rapports & Exports
 - ⏳ Rapport hebdomadaire automatique (digest)
 - ⏳ Rapport mensuel d'activité
-- ⏳ Export PDF des dashboards
-- ⏳ Export CSV des données brutes
-- ⏳ Export Excel avec graphiques
+- ✅ Export PDF des dashboards
+- ✅ Export CSV des données brutes
+- ✅ Export Excel avec graphiques
 - ⏳ Rapport de productivité par membre
-- ⏳ Rapport de progression des objectifs
+- ✅ Rapport de progression des objectifs
 - ⏳ Planning prévisionnel (basé sur la velocity)
 - ⏳ Rapport d'audit (activités par utilisateur)
 - ⏳ Rapports personnalisables (choisir les métriques)
@@ -578,7 +578,7 @@
 3. ~~Analytics membres (productivité, charge, heatmaps)~~ (DONE)
 4. ~~Analytics habitudes (streaks, heatmap calendrier, tendances)~~ (DONE)
 5. ~~Analytics objectifs (progression, prédictions, risques)~~ (DONE)
-6. Rapports exportables (PDF, CSV, Excel)
+6. ~~Rapports exportables (PDF, CSV, Excel)~~ (DONE)
 7. Changement de rôle des membres
 8. ~~Modification du profil utilisateur~~ (DONE)
 9. Recherche globale
