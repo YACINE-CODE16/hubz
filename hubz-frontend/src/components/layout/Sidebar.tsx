@@ -9,6 +9,7 @@ import {
   StickyNote,
   Repeat,
   BarChart3,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -34,6 +35,7 @@ const organizationNav: NavItem[] = [
   { label: 'Objectifs', to: 'goals', icon: Target },
   { label: 'Calendrier', to: 'calendar', icon: Calendar },
   { label: 'Notes', to: 'notes', icon: StickyNote },
+  { label: 'Analytics', to: 'analytics', icon: TrendingUp },
 ];
 
 export type SpaceType = 'personal' | 'organization';

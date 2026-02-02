@@ -72,9 +72,10 @@ export default function PersonalRecapPage() {
     (g) => g.totalTasks > 0 && g.completedTasks === g.totalTasks
   ).length;
 
-  const inProgressGoals = goals.filter(
+  const _inProgressGoals = goals.filter(
     (g) => g.totalTasks > 0 && g.completedTasks < g.totalTasks
   ).length;
+  void _inProgressGoals; // Suppress unused variable warning
 
   const totalTasks = goals.reduce((sum, g) => sum + g.totalTasks, 0);
   const completedTasks = goals.reduce((sum, g) => sum + g.completedTasks, 0);

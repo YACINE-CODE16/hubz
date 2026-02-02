@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Users, Plus, Trash2, Mail, Copy, Check, Clock, X } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Trash2, Mail, Copy, Check, Clock, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -13,7 +13,6 @@ import type { Invitation, CreateInvitationRequest } from '../../types/invitation
 
 export default function MembersPage() {
   const { orgId } = useParams<{ orgId: string }>();
-  const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
