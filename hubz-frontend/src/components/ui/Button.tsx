@@ -11,6 +11,8 @@ const variants = {
     'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover',
   outline:
     'border border-gray-300 dark:border-gray-600 bg-transparent text-gray-700 dark:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover',
+  danger:
+    'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
 };
 
 const sizes = {

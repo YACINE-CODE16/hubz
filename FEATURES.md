@@ -52,8 +52,8 @@
   - ✅ Supprimer une invitation
   - ✅ Expiration après 7 jours
   - ✅ Envoi automatique d'email (avec template HTML)
-- ⏳ Changer le rôle d'un membre
-- ⏳ Transfert de propriété (OWNER)
+- ✅ Changer le rôle d'un membre
+- ✅ Transfert de propriété (OWNER)
 
 ### 2.3 Documents d'organisation
 - ✅ Upload de documents (drag & drop)
@@ -553,6 +553,7 @@
 - Authentification de base (JWT, login, register)
 - CRUD Organisations complètes
 - Système d'invitation avec email
+- Gestion des roles de membres et transfert de propriete
 - CRUD Équipes
 - CRUD Tâches avec Kanban
 - CRUD Objectifs
@@ -579,7 +580,7 @@
 4. ~~Analytics habitudes (streaks, heatmap calendrier, tendances)~~ (DONE)
 5. ~~Analytics objectifs (progression, prédictions, risques)~~ (DONE)
 6. ~~Rapports exportables (PDF, CSV, Excel)~~ (DONE)
-7. Changement de rôle des membres
+7. ~~Changement de rôle des membres~~ (DONE)
 8. ~~Modification du profil utilisateur~~ (DONE)
 9. Recherche globale
 10. Notifications in-app

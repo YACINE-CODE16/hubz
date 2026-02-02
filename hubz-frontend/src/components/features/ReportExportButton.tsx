@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, File, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '../ui/Button';
-import { reportService, ReportFormat } from '../../services/report.service';
+import { reportService } from '../../services/report.service';
+import type { ReportFormat } from '../../services/report.service';
 
 interface Props {
   type: 'tasks' | 'goals' | 'habits';

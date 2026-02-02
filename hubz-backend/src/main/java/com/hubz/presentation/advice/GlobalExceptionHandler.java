@@ -1,6 +1,7 @@
 package com.hubz.presentation.advice;
 
 import com.hubz.domain.exception.AccessDeniedException;
+import com.hubz.domain.exception.CannotChangeOwnerRoleException;
 import com.hubz.domain.exception.EventNotFoundException;
 import com.hubz.domain.exception.GoalNotFoundException;
 import com.hubz.domain.exception.HabitLogNotFoundException;
@@ -8,6 +9,7 @@ import com.hubz.domain.exception.HabitNotFoundException;
 import com.hubz.domain.exception.InvalidCredentialsException;
 import com.hubz.domain.exception.InvalidPasswordException;
 import com.hubz.domain.exception.MemberAlreadyExistsException;
+import com.hubz.domain.exception.MemberNotFoundException;
 import com.hubz.domain.exception.NoteNotFoundException;
 import com.hubz.domain.exception.OrganizationNotFoundException;
 import com.hubz.domain.exception.TaskNotFoundException;
@@ -31,6 +33,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(CannotChangeOwnerRoleException.class)
+    public ResponseEntity<Map<String, Object>> handleCannotChangeOwnerRole(CannotChangeOwnerRoleException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleMemberNotFound(MemberNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)

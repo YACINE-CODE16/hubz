@@ -8,7 +8,9 @@ import com.hubz.application.port.out.OrganizationMemberRepositoryPort;
 import com.hubz.application.port.out.OrganizationRepositoryPort;
 import com.hubz.application.port.out.UserRepositoryPort;
 import com.hubz.domain.enums.MemberRole;
+import com.hubz.domain.exception.CannotChangeOwnerRoleException;
 import com.hubz.domain.exception.MemberAlreadyExistsException;
+import com.hubz.domain.exception.MemberNotFoundException;
 import com.hubz.domain.exception.OrganizationNotFoundException;
 import com.hubz.domain.exception.UserNotFoundException;
 import com.hubz.domain.model.Organization;
@@ -489,6 +491,284 @@ class OrganizationServiceTest {
             assertThatThrownBy(() -> organizationService.removeMember(testOrg.getId(), userId, nonAdminUserId))
                     .isInstanceOf(RuntimeException.class);
             verify(memberRepository, never()).deleteByOrganizationIdAndUserId(any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Member Role Tests")
+    class ChangeMemberRoleTests {
+
+        @Test
+        @DisplayName("Should successfully change member role from MEMBER to ADMIN")
+        void shouldChangeMemberRoleToAdmin() {
+            // Given
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), userId))
+                    .thenReturn(Optional.of(testMember));
+            when(memberRepository.save(any(OrganizationMember.class))).thenReturn(testMember);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
+            // When
+            MemberResponse response = organizationService.changeMemberRole(testOrg.getId(), userId, MemberRole.ADMIN, ownerId);
+
+            // Then
+            assertThat(response).isNotNull();
+            verify(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            verify(memberRepository).save(any(OrganizationMember.class));
+        }
+
+        @Test
+        @DisplayName("Should successfully change member role from ADMIN to VIEWER")
+        void shouldChangeMemberRoleToViewer() {
+            // Given
+            OrganizationMember adminMember = OrganizationMember.builder()
+                    .id(UUID.randomUUID())
+                    .organizationId(testOrg.getId())
+                    .userId(userId)
+                    .role(MemberRole.ADMIN)
+                    .joinedAt(LocalDateTime.now())
+                    .build();
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), userId))
+                    .thenReturn(Optional.of(adminMember));
+            when(memberRepository.save(any(OrganizationMember.class))).thenReturn(adminMember);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
+            // When
+            MemberResponse response = organizationService.changeMemberRole(testOrg.getId(), userId, MemberRole.VIEWER, ownerId);
+
+            // Then
+            assertThat(response).isNotNull();
+            verify(memberRepository).save(any(OrganizationMember.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when trying to change owner's role")
+        void shouldThrowExceptionWhenChangingOwnerRole() {
+            // Given
+            OrganizationMember ownerMember = OrganizationMember.builder()
+                    .id(UUID.randomUUID())
+                    .organizationId(testOrg.getId())
+                    .userId(ownerId)
+                    .role(MemberRole.OWNER)
+                    .joinedAt(LocalDateTime.now())
+                    .build();
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), ownerId))
+                    .thenReturn(Optional.of(ownerMember));
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.changeMemberRole(testOrg.getId(), ownerId, MemberRole.ADMIN, ownerId))
+                    .isInstanceOf(CannotChangeOwnerRoleException.class);
+            verify(memberRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when trying to promote to OWNER")
+        void shouldThrowExceptionWhenPromotingToOwner() {
+            // Given
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), userId))
+                    .thenReturn(Optional.of(testMember));
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.changeMemberRole(testOrg.getId(), userId, MemberRole.OWNER, ownerId))
+                    .isInstanceOf(CannotChangeOwnerRoleException.class);
+            verify(memberRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when member not found")
+        void shouldThrowExceptionWhenMemberNotFound() {
+            // Given
+            UUID nonExistentUserId = UUID.randomUUID();
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), nonExistentUserId))
+                    .thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.changeMemberRole(testOrg.getId(), nonExistentUserId, MemberRole.ADMIN, ownerId))
+                    .isInstanceOf(MemberNotFoundException.class);
+            verify(memberRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user is not admin")
+        void shouldThrowExceptionWhenNotAdmin() {
+            // Given
+            UUID nonAdminUserId = UUID.randomUUID();
+            doThrow(new RuntimeException("Not admin"))
+                    .when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), nonAdminUserId);
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.changeMemberRole(testOrg.getId(), userId, MemberRole.ADMIN, nonAdminUserId))
+                    .isInstanceOf(RuntimeException.class);
+            verify(memberRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Transfer Ownership Tests")
+    class TransferOwnershipTests {
+
+        private OrganizationMember ownerMember;
+        private OrganizationMember newOwnerMember;
+        private UUID newOwnerId;
+
+        @BeforeEach
+        void setUpTransferOwnership() {
+            newOwnerId = UUID.randomUUID();
+
+            ownerMember = OrganizationMember.builder()
+                    .id(UUID.randomUUID())
+                    .organizationId(testOrg.getId())
+                    .userId(ownerId)
+                    .role(MemberRole.OWNER)
+                    .joinedAt(LocalDateTime.now())
+                    .build();
+
+            newOwnerMember = OrganizationMember.builder()
+                    .id(UUID.randomUUID())
+                    .organizationId(testOrg.getId())
+                    .userId(newOwnerId)
+                    .role(MemberRole.ADMIN)
+                    .joinedAt(LocalDateTime.now())
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should successfully transfer ownership")
+        void shouldTransferOwnership() {
+            // Given
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), newOwnerId))
+                    .thenReturn(Optional.of(newOwnerMember));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), ownerId))
+                    .thenReturn(Optional.of(ownerMember));
+            when(memberRepository.save(any(OrganizationMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(organizationRepository.save(any(Organization.class))).thenReturn(testOrg);
+
+            // When
+            organizationService.transferOwnership(testOrg.getId(), newOwnerId, ownerId);
+
+            // Then
+            verify(memberRepository, times(2)).save(any(OrganizationMember.class));
+            verify(organizationRepository).save(any(Organization.class));
+        }
+
+        @Test
+        @DisplayName("Should demote current owner to admin after transfer")
+        void shouldDemoteCurrentOwnerToAdmin() {
+            // Given
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), newOwnerId))
+                    .thenReturn(Optional.of(newOwnerMember));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), ownerId))
+                    .thenReturn(Optional.of(ownerMember));
+            ArgumentCaptor<OrganizationMember> memberCaptor = ArgumentCaptor.forClass(OrganizationMember.class);
+            when(memberRepository.save(memberCaptor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
+            when(organizationRepository.save(any(Organization.class))).thenReturn(testOrg);
+
+            // When
+            organizationService.transferOwnership(testOrg.getId(), newOwnerId, ownerId);
+
+            // Then
+            List<OrganizationMember> savedMembers = memberCaptor.getAllValues();
+            assertThat(savedMembers).hasSize(2);
+
+            // First save should be the current owner becoming ADMIN
+            assertThat(savedMembers.get(0).getUserId()).isEqualTo(ownerId);
+            assertThat(savedMembers.get(0).getRole()).isEqualTo(MemberRole.ADMIN);
+
+            // Second save should be the new owner becoming OWNER
+            assertThat(savedMembers.get(1).getUserId()).isEqualTo(newOwnerId);
+            assertThat(savedMembers.get(1).getRole()).isEqualTo(MemberRole.OWNER);
+        }
+
+        @Test
+        @DisplayName("Should update organization owner ID")
+        void shouldUpdateOrganizationOwnerId() {
+            // Given
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), newOwnerId))
+                    .thenReturn(Optional.of(newOwnerMember));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), ownerId))
+                    .thenReturn(Optional.of(ownerMember));
+            when(memberRepository.save(any(OrganizationMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            ArgumentCaptor<Organization> orgCaptor = ArgumentCaptor.forClass(Organization.class);
+            when(organizationRepository.save(orgCaptor.capture())).thenReturn(testOrg);
+
+            // When
+            organizationService.transferOwnership(testOrg.getId(), newOwnerId, ownerId);
+
+            // Then
+            Organization savedOrg = orgCaptor.getValue();
+            assertThat(savedOrg.getOwnerId()).isEqualTo(newOwnerId);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user is not current owner")
+        void shouldThrowExceptionWhenNotOwner() {
+            // Given
+            UUID nonOwnerId = UUID.randomUUID();
+            Organization orgWithDifferentOwner = Organization.builder()
+                    .id(testOrg.getId())
+                    .name(testOrg.getName())
+                    .ownerId(ownerId) // Different from nonOwnerId
+                    .build();
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(orgWithDifferentOwner));
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.transferOwnership(testOrg.getId(), newOwnerId, nonOwnerId))
+                    .isInstanceOf(CannotChangeOwnerRoleException.class);
+            verify(memberRepository, never()).save(any());
+            verify(organizationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when organization not found")
+        void shouldThrowExceptionWhenOrganizationNotFound() {
+            // Given
+            UUID nonExistentOrgId = UUID.randomUUID();
+            when(organizationRepository.findById(nonExistentOrgId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.transferOwnership(nonExistentOrgId, newOwnerId, ownerId))
+                    .isInstanceOf(OrganizationNotFoundException.class);
+            verify(memberRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when new owner is not a member")
+        void shouldThrowExceptionWhenNewOwnerNotMember() {
+            // Given
+            UUID nonMemberId = UUID.randomUUID();
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), nonMemberId))
+                    .thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.transferOwnership(testOrg.getId(), nonMemberId, ownerId))
+                    .isInstanceOf(MemberNotFoundException.class);
+            verify(memberRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when current owner member record not found")
+        void shouldThrowExceptionWhenCurrentOwnerMemberNotFound() {
+            // Given
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), newOwnerId))
+                    .thenReturn(Optional.of(newOwnerMember));
+            when(memberRepository.findByOrganizationIdAndUserId(testOrg.getId(), ownerId))
+                    .thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.transferOwnership(testOrg.getId(), newOwnerId, ownerId))
+                    .isInstanceOf(MemberNotFoundException.class);
+            verify(memberRepository, never()).save(any());
         }
     }
 }
