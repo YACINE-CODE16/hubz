@@ -236,8 +236,8 @@
 - ✅ Vue d'ensemble de l'organisation
 - ✅ Statistiques de base (membres, tâches, objectifs)
 - ✅ Activité récente
-- ⏳ Graphiques de progression
-- ⏳ KPIs personnalisables
+- ✅ Graphiques de progression
+- ✅ KPIs (score de sante, tendances, croissance mensuelle)
 - ⏳ Rapports exportables
 
 ### 9.2 Dashboard Personnel
@@ -248,50 +248,50 @@
 - ⏳ Progression de mes objectifs
 
 ### 9.3 Analytics - Tâches
-- ⏳ Nombre de tâches créées par période (jour/semaine/mois)
-- ⏳ Nombre de tâches complétées par période
-- ⏳ Taux de complétion des tâches (complétées / total)
-- ⏳ Temps moyen de complétion d'une tâche (création → DONE)
+- ✅ Nombre de tâches créées par période (jour/semaine/mois)
+- ✅ Nombre de tâches complétées par période
+- ✅ Taux de complétion des tâches (complétées / total)
+- ✅ Temps moyen de complétion d'une tâche (création → DONE)
 - ⏳ Temps moyen par statut (temps en TODO, temps en IN_PROGRESS)
-- ⏳ Répartition par priorité (LOW/MEDIUM/HIGH/URGENT) - Pie chart
-- ⏳ Répartition par statut (TODO/IN_PROGRESS/DONE) - Pie chart
-- ⏳ Tâches en retard (dépassant la due date)
-- ⏳ Taux de retard (tâches en retard / tâches avec due date)
-- ⏳ Burndown chart (tâches restantes vs temps)
+- ✅ Répartition par priorité (LOW/MEDIUM/HIGH/URGENT) - Pie chart
+- ✅ Répartition par statut (TODO/IN_PROGRESS/DONE) - Pie chart
+- ✅ Tâches en retard (dépassant la due date)
+- ✅ Taux de retard (tâches en retard / tâches avec due date)
+- ✅ Burndown chart (tâches restantes vs temps)
 - ⏳ Burnup chart (tâches complétées cumulées vs temps)
-- ⏳ Velocity chart (tâches complétées par sprint/semaine)
+- ✅ Velocity chart (tâches complétées par sprint/semaine)
 - ⏳ Throughput chart (tâches terminées par jour - rolling average)
 - ⏳ Cycle time distribution (histogramme du temps de complétion)
 - ⏳ Lead time (temps entre création et complétion)
 - ⏳ Tâches bloquées trop longtemps (alertes)
 - ⏳ Tendance de création vs complétion (balance de flux)
-- ⏳ Cumulative flow diagram (CFD)
+- ✅ Cumulative flow diagram (CFD)
 - ⏳ Work in progress (WIP) chart - tâches actives en parallèle
 
 ### 9.4 Analytics - Membres & Productivité
-- ⏳ Tâches complétées par membre (classement)
-- ⏳ Charge de travail par membre (tâches assignées actives)
+- ✅ Tâches complétées par membre (classement)
+- ✅ Charge de travail par membre (tâches assignées actives)
 - ⏳ Répartition de la charge (heatmap par membre)
-- ⏳ Taux de complétion par membre
+- ✅ Taux de complétion par membre
 - ⏳ Temps moyen de complétion par membre
-- ⏳ Historique d'activité par membre (contributions/jour)
-- ⏳ Score de productivité individuel (tâches pondérées par priorité)
+- ✅ Historique d'activité par membre (contributions/jour)
+- ✅ Score de productivité individuel (tâches pondérées par priorité)
 - ⏳ Contribution heatmap (style GitHub - grille d'activité annuelle)
 - ⏳ Comparaison de performance entre équipes
-- ⏳ Top performers de la semaine/du mois
-- ⏳ Indicateur de surcharge (membres avec trop de tâches)
+- ✅ Top performers de la semaine/du mois
+- ✅ Indicateur de surcharge (membres avec trop de tâches)
 - ⏳ Membres inactifs (aucune activité depuis X jours)
 
 ### 9.5 Analytics - Objectifs
-- ⏳ Progression globale des objectifs (agrégée)
-- ⏳ Taux d'objectifs atteints vs en cours vs échoués
-- ⏳ Progression par type (SHORT/MEDIUM/LONG)
-- ⏳ Courbe de progression dans le temps par objectif
-- ⏳ Objectifs à risque (progression faible + deadline proche)
-- ⏳ Vélocité de progression (vitesse d'avancement)
-- ⏳ Prédiction de complétion (estimation basée sur la vélocité)
+- ✅ Progression globale des objectifs (agrégée)
+- ✅ Taux d'objectifs atteints vs en cours vs échoués
+- ✅ Progression par type (SHORT/MEDIUM/LONG)
+- ✅ Courbe de progression dans le temps par objectif
+- ✅ Objectifs à risque (progression faible + deadline proche)
+- ✅ Vélocité de progression (vitesse d'avancement)
+- ✅ Prédiction de complétion (estimation basée sur la vélocité)
 - ⏳ Historique des objectifs complétés par mois
-- ⏳ Corrélation objectifs ↔ tâches (combien de tâches contribuent)
+- ✅ Corrélation objectifs ↔ tâches (combien de tâches contribuent)
 - ⏳ Score d'alignement stratégique (objectifs liés entre eux)
 
 ### 9.6 Analytics - Habitudes & Bien-être
@@ -323,18 +323,18 @@
 - ⏳ Prévision de charge pour la semaine suivante
 
 ### 9.8 Analytics - Organisation (Vue globale)
-- ⏳ Score de santé de l'organisation (composite)
-- ⏳ Nombre total de tâches actives
-- ⏳ Nombre de membres actifs (derniers 7 jours)
+- ✅ Score de santé de l'organisation (composite)
+- ✅ Nombre total de tâches actives
+- ✅ Nombre de membres actifs (derniers 7 jours)
 - ⏳ Activité globale (événements + tâches + notes + objectifs)
 - ⏳ Tendance d'activité sur 12 mois
 - ⏳ Répartition de l'activité par équipe
-- ⏳ Taux de croissance (nouveaux membres/mois)
+- ✅ Taux de croissance (nouveaux membres/mois)
 - ⏳ Score de collaboration (tâches cross-team)
 - ⏳ Flux d'activité en temps réel (timeline)
 - ⏳ Graphique réseau de collaboration (qui travaille avec qui)
 - ⏳ Indicateur de santé par équipe (traffic light system)
-- ⏳ Comparaison mois par mois (MoM growth)
+- ✅ Comparaison mois par mois (MoM growth)
 
 ### 9.9 Rapports & Exports
 - ⏳ Rapport hebdomadaire automatique (digest)
@@ -351,19 +351,19 @@
 - ⏳ API pour connecter des outils BI externes (Metabase, Tableau)
 
 ### 9.10 Visualisation & Graphiques
-- ⏳ Librairie de graphiques (Recharts / Chart.js / D3.js)
-- ⏳ Line charts (tendances dans le temps)
-- ⏳ Bar charts (comparaisons)
-- ⏳ Pie charts (répartitions)
-- ⏳ Area charts (cumulative flow)
+- ✅ Librairie de graphiques (Recharts)
+- ✅ Line charts (tendances dans le temps)
+- ✅ Bar charts (comparaisons)
+- ✅ Pie charts (répartitions)
+- ✅ Area charts (cumulative flow)
 - ⏳ Heatmaps (activité calendrier)
 - ⏳ Radar charts (vue multi-dimensionnelle)
-- ⏳ Gauge charts (KPIs avec seuils)
+- ✅ Gauge charts (KPIs avec seuils)
 - ⏳ Treemaps (répartition hiérarchique)
-- ⏳ Graphiques interactifs (zoom, tooltip, drill-down)
+- ✅ Graphiques interactifs (zoom, tooltip, drill-down)
 - ⏳ Widgets de dashboard repositionnables (drag & drop)
 - ⏳ Filtres dynamiques (date range, équipe, membre)
-- ⏳ Thème sombre/clair pour les graphiques
+- ✅ Thème sombre/clair pour les graphiques
 - ⏳ Mode plein écran pour chaque graphique
 - ⏳ Comparaison de périodes (cette semaine vs semaine dernière)
 
@@ -561,19 +561,23 @@
 - CRUD Habitudes avec logs
 - Documents d'organisation
 - UI/UX de base avec dark mode
+- Analytics & Dashboards avances (KPIs, graphiques)
+- Analytics taches (burndown, velocity, CFD)
+- Analytics membres (productivite, charge, top performers)
+- Analytics habitudes (streaks, heatmap, tendances)
+- Analytics objectifs (progression, predictions, risques)
 
 ### 🚧 Fonctionnalités en cours
-- Dashboard organisation/personnel
 - Interface calendrier
 - Suivi visuel des habitudes
 - Tests unitaires des services (complets)
 
 ### ⏳ Fonctionnalités prioritaires à venir
-1. **Analytics & Dashboards avancés** (KPIs, graphiques, rapports)
-2. Analytics tâches (burndown, velocity, cycle time, CFD)
-3. Analytics membres (productivité, charge, heatmaps)
+1. ~~Analytics & Dashboards avancés~~ (DONE)
+2. ~~Analytics tâches (burndown, velocity, cycle time, CFD)~~ (DONE)
+3. ~~Analytics membres (productivité, charge, heatmaps)~~ (DONE)
 4. ~~Analytics habitudes (streaks, heatmap calendrier, tendances)~~ (DONE)
-5. Analytics objectifs (progression, prédictions, risques)
+5. ~~Analytics objectifs (progression, prédictions, risques)~~ (DONE)
 6. Rapports exportables (PDF, CSV, Excel)
 7. Changement de rôle des membres
 8. ~~Modification du profil utilisateur~~ (DONE)
@@ -585,5 +589,5 @@
 
 ---
 
-**Dernière mise à jour:** 29 janvier 2026
-**Progression globale:** ~40% complété
+**Dernière mise à jour:** 02 fevrier 2026
+**Progression globale:** ~55% complété

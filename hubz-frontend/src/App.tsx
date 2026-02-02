@@ -15,6 +15,7 @@ import MembersPage from './pages/organization/MembersPage';
 import GoalsPage from './pages/organization/GoalsPage';
 import CalendarPage from './pages/organization/CalendarPage';
 import NotesPage from './pages/organization/NotesPage';
+import AnalyticsPage from './pages/organization/AnalyticsPage';
 import PersonalLayout from './pages/personal/PersonalLayout';
 import HabitsPage from './pages/personal/HabitsPage';
 import PersonalGoalsPage from './pages/personal/PersonalGoalsPage';
@@ -65,6 +66,7 @@ function App() {
           <Route path="goals" element={<GoalsPage />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="notes" element={<NotesPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
         </Route>
 
         {/* Personal space */}
