@@ -55,4 +55,11 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Task> searchByTitleOrDescription(String query, List<UUID> organizationIds) {
+        return jpaRepository.searchByTitleOrDescription(query, organizationIds).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

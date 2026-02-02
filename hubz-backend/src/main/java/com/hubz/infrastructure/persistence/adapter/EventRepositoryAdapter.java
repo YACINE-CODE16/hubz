@@ -64,4 +64,11 @@ public class EventRepositoryAdapter implements EventRepositoryPort {
     public void delete(Event event) {
         jpaRepository.deleteById(event.getId());
     }
+
+    @Override
+    public List<Event> searchByTitleOrDescription(String query, List<UUID> organizationIds, UUID userId) {
+        return jpaRepository.searchByTitleOrDescription(query, organizationIds, userId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

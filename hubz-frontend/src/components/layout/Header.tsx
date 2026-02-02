@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Bell, Home } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { cn } from '../../lib/utils';
+import SearchBar from '../ui/SearchBar';
 
 interface HeaderProps {
   title: string;
@@ -35,8 +36,13 @@ export default function Header({ title, color, onMenuToggle }: HeaderProps) {
           <Home className="h-5 w-5" />
         </button>
 
-        {/* Center */}
-        <div className="flex flex-1 items-center justify-center gap-2">
+        {/* Center - Search */}
+        <div className="hidden flex-1 items-center justify-center md:flex">
+          <SearchBar />
+        </div>
+
+        {/* Title on mobile */}
+        <div className="flex flex-1 items-center justify-center gap-2 md:hidden">
           {color && (
             <div
               className="h-3 w-3 rounded-full"

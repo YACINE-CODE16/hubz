@@ -49,4 +49,11 @@ public class NoteRepositoryAdapter implements NoteRepositoryPort {
     public void delete(Note note) {
         jpaRepository.deleteById(note.getId());
     }
+
+    @Override
+    public List<Note> searchByTitleOrContent(String query, List<UUID> organizationIds) {
+        return jpaRepository.searchByTitleOrContent(query, organizationIds).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

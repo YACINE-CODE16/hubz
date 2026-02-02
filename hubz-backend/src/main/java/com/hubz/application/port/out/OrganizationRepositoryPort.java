@@ -15,4 +15,6 @@ public interface OrganizationRepositoryPort {
     List<Organization> findAll();
 
     void deleteById(UUID id);
+
+    List<Organization> searchByName(String query);
 }

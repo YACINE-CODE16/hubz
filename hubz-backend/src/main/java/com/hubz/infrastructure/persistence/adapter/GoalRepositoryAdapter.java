@@ -48,4 +48,11 @@ public class GoalRepositoryAdapter implements GoalRepositoryPort {
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Goal> searchByTitle(String query, List<UUID> organizationIds, UUID userId) {
+        return jpaRepository.searchByTitle(query, organizationIds, userId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }
