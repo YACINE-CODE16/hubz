@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, Home } from 'lucide-react';
+import { Menu, Home } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { cn } from '../../lib/utils';
 import SearchBar from '../ui/SearchBar';
+import NotificationCenter from '../ui/NotificationCenter';
 
 interface HeaderProps {
   title: string;
@@ -55,9 +56,7 @@ export default function Header({ title, color, onMenuToggle }: HeaderProps) {
         </div>
 
         {/* Right */}
-        <button className="relative rounded-lg p-2 text-gray-500 hover:bg-light-hover dark:hover:bg-dark-hover hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-          <Bell className="h-5 w-5" />
-        </button>
+        <NotificationCenter />
 
         <div
           className={cn(
