@@ -404,10 +404,16 @@
 ## 11. Notifications & Communication
 
 ### 11.1 Système de notifications
-- ⏳ Notifications in-app
+- ✅ Notifications in-app
+  - ✅ Backend: NotificationService, NotificationController
+  - ✅ Types: TASK_ASSIGNED, TASK_COMPLETED, ORGANIZATION_INVITE, ROLE_CHANGED, etc.
+  - ✅ Endpoints: GET/POST/DELETE notifications, mark read, count
+  - ✅ Frontend: NotificationCenter component in header
+  - ✅ Badge de compteur non-lus
+  - ✅ Polling automatique (30s)
 - ⏳ Notifications email
 - ⏳ Notifications push (PWA)
-- ⏳ Centre de notifications
+- ✅ Centre de notifications
 - ⏳ Paramètres de notification
 
 ### 11.2 Emails automatiques
@@ -560,6 +566,7 @@
 - Système d'invitation avec email
 - Gestion des roles de membres et transfert de propriete
 - Recherche globale (organisations, taches, objectifs, evenements, notes, membres)
+- Notifications in-app (backend + frontend, centre de notifications)
 - CRUD Équipes
 - CRUD Tâches avec Kanban
 - CRUD Objectifs
@@ -589,7 +596,7 @@
 7. ~~Changement de rôle des membres~~ (DONE)
 8. ~~Modification du profil utilisateur~~ (DONE)
 9. ~~Recherche globale~~ (DONE)
-10. Notifications in-app
+10. ~~Notifications in-app~~ (DONE)
 11. Tests complets (>70% coverage)
 12. CI/CD
 13. Déploiement production

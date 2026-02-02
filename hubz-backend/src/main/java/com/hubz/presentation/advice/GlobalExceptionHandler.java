@@ -7,6 +7,7 @@ import com.hubz.domain.exception.GoalNotFoundException;
 import com.hubz.domain.exception.HabitLogNotFoundException;
 import com.hubz.domain.exception.HabitNotFoundException;
 import com.hubz.domain.exception.InvalidCredentialsException;
+import com.hubz.domain.exception.NotificationNotFoundException;
 import com.hubz.domain.exception.InvalidPasswordException;
 import com.hubz.domain.exception.MemberAlreadyExistsException;
 import com.hubz.domain.exception.MemberNotFoundException;
@@ -118,6 +119,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HabitLogNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleHabitLogNotFound(HabitLogNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotificationNotFound(NotificationNotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
