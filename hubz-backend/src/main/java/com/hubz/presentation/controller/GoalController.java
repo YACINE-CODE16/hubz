@@ -2,8 +2,10 @@ package com.hubz.presentation.controller;
 
 import com.hubz.application.dto.request.CreateGoalRequest;
 import com.hubz.application.dto.request.UpdateGoalRequest;
+import com.hubz.application.dto.response.GoalAnalyticsResponse;
 import com.hubz.application.dto.response.GoalResponse;
 import com.hubz.application.port.out.UserRepositoryPort;
+import com.hubz.application.service.GoalAnalyticsService;
 import com.hubz.application.service.GoalService;
 import com.hubz.domain.exception.UserNotFoundException;
 import jakarta.validation.Valid;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class GoalController {
 
     private final GoalService goalService;
+    private final GoalAnalyticsService goalAnalyticsService;
     private final UserRepositoryPort userRepositoryPort;
 
     @GetMapping("/api/organizations/{orgId}/goals")
@@ -69,6 +72,20 @@ public class GoalController {
         UUID currentUserId = resolveUserId(authentication);
         goalService.delete(id, currentUserId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/api/users/me/goals/analytics")
+    public ResponseEntity<GoalAnalyticsResponse> getPersonalGoalAnalytics(Authentication authentication) {
+        UUID userId = resolveUserId(authentication);
+        return ResponseEntity.ok(goalAnalyticsService.getPersonalAnalytics(userId));
+    }
+
+    @GetMapping("/api/organizations/{orgId}/goals/analytics")
+    public ResponseEntity<GoalAnalyticsResponse> getOrganizationGoalAnalytics(
+            @PathVariable UUID orgId,
+            Authentication authentication) {
+        UUID userId = resolveUserId(authentication);
+        return ResponseEntity.ok(goalAnalyticsService.getOrganizationAnalytics(orgId, userId));
     }
 
     private UUID resolveUserId(Authentication authentication) {

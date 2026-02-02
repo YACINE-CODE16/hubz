@@ -5,6 +5,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
+import GoalAnalytics from '../../components/features/GoalAnalytics';
 import { goalService } from '../../services/goal.service';
 import type { Goal, GoalType, CreateGoalRequest, UpdateGoalRequest } from '../../types/goal';
 
@@ -14,6 +15,7 @@ export default function PersonalGoalsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [analyticsKey, setAnalyticsKey] = useState(0);
 
   useEffect(() => {
     fetchGoals();
@@ -34,11 +36,12 @@ export default function PersonalGoalsPage() {
   const handleCreate = async (data: CreateGoalRequest) => {
     try {
       await goalService.createPersonalGoal(data);
-      toast.success('Objectif créé');
+      toast.success('Objectif cree');
       setIsCreateModalOpen(false);
       fetchGoals();
+      setAnalyticsKey((prev) => prev + 1);
     } catch (error) {
-      toast.error('Erreur lors de la création');
+      toast.error('Erreur lors de la creation');
     }
   };
 
@@ -46,12 +49,13 @@ export default function PersonalGoalsPage() {
     if (!selectedGoal) return;
     try {
       await goalService.update(selectedGoal.id, data);
-      toast.success('Objectif mis à jour');
+      toast.success('Objectif mis a jour');
       setIsEditModalOpen(false);
       setSelectedGoal(null);
       fetchGoals();
+      setAnalyticsKey((prev) => prev + 1);
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour');
+      toast.error('Erreur lors de la mise a jour');
     }
   };
 
@@ -59,8 +63,9 @@ export default function PersonalGoalsPage() {
     if (!confirm('Supprimer cet objectif ?')) return;
     try {
       await goalService.delete(id);
-      toast.success('Objectif supprimé');
+      toast.success('Objectif supprime');
       fetchGoals();
+      setAnalyticsKey((prev) => prev + 1);
     } catch (error) {
       toast.error('Erreur lors de la suppression');
     }
@@ -142,6 +147,9 @@ export default function PersonalGoalsPage() {
           goal={selectedGoal}
         />
       )}
+
+      {/* Analytics Section */}
+      <GoalAnalytics refreshKey={analyticsKey} />
     </div>
   );
 }

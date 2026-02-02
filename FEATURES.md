@@ -290,7 +290,7 @@
 - ✅ Objectifs à risque (progression faible + deadline proche)
 - ✅ Vélocité de progression (vitesse d'avancement)
 - ✅ Prédiction de complétion (estimation basée sur la vélocité)
-- ⏳ Historique des objectifs complétés par mois
+- ✅ Historique des objectifs complétés par mois
 - ✅ Corrélation objectifs ↔ tâches (combien de tâches contribuent)
 - ⏳ Score d'alignement stratégique (objectifs liés entre eux)
 
