@@ -14,4 +14,8 @@ public interface HabitLogRepositoryPort {
     List<HabitLog> findByHabitIdAndDateRange(UUID habitId, LocalDate startDate, LocalDate endDate);
     Optional<HabitLog> findByHabitIdAndDate(UUID habitId, LocalDate date);
     void deleteById(UUID id);
+
+    // Analytics methods
+    List<HabitLog> findByHabitIdInAndDateRange(List<UUID> habitIds, LocalDate startDate, LocalDate endDate);
+    List<HabitLog> findByHabitIdIn(List<UUID> habitIds);
 }

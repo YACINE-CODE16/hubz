@@ -295,16 +295,16 @@
 - ⏳ Score d'alignement stratégique (objectifs liés entre eux)
 
 ### 9.6 Analytics - Habitudes & Bien-être
-- ⏳ Taux de complétion quotidien des habitudes
-- ⏳ Taux de complétion hebdomadaire
-- ⏳ Taux de complétion mensuel
-- ⏳ Streaks actuels (jours consécutifs de complétion)
-- ⏳ Record de streak par habitude
-- ⏳ Heatmap calendrier de complétion (style GitHub contributions)
-- ⏳ Jour de la semaine le plus productif
-- ⏳ Tendance sur 30/60/90 jours
+- ✅ Taux de complétion quotidien des habitudes
+- ✅ Taux de complétion hebdomadaire
+- ✅ Taux de complétion mensuel
+- ✅ Streaks actuels (jours consécutifs de complétion)
+- ✅ Record de streak par habitude
+- ✅ Heatmap calendrier de complétion (style GitHub contributions)
+- ✅ Jour de la semaine le plus productif
+- ✅ Tendance sur 30/60/90 jours
 - ⏳ Score de constance (régularité dans le temps)
-- ⏳ Habitudes les plus/moins respectées (classement)
+- ✅ Habitudes les plus/moins respectées (classement)
 - ⏳ Corrélation habitudes ↔ productivité
 - ⏳ Graphique radar (vue d'ensemble de toutes les habitudes)
 - ⏳ Comparaison semaine actuelle vs semaine précédente
@@ -572,7 +572,7 @@
 1. **Analytics & Dashboards avancés** (KPIs, graphiques, rapports)
 2. Analytics tâches (burndown, velocity, cycle time, CFD)
 3. Analytics membres (productivité, charge, heatmaps)
-4. Analytics habitudes (streaks, heatmap calendrier, tendances)
+4. ~~Analytics habitudes (streaks, heatmap calendrier, tendances)~~ (DONE)
 5. Analytics objectifs (progression, prédictions, risques)
 6. Rapports exportables (PDF, CSV, Excel)
 7. Changement de rôle des membres

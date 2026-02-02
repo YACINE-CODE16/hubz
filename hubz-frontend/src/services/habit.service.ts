@@ -2,6 +2,7 @@ import api from './api';
 import type {
   Habit,
   HabitLog,
+  HabitAnalytics,
   CreateHabitRequest,
   UpdateHabitRequest,
   LogHabitRequest,
@@ -34,6 +35,11 @@ export const habitService = {
 
   async getHabitLogs(id: string): Promise<HabitLog[]> {
     const response = await api.get<HabitLog[]>(`/habits/${id}/logs`);
+    return response.data;
+  },
+
+  async getAnalytics(): Promise<HabitAnalytics> {
+    const response = await api.get<HabitAnalytics>('/users/me/habits/analytics');
     return response.data;
   },
 };

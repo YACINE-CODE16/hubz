@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button';
 import HabitCard from '../../components/features/HabitCard';
 import CreateHabitModal from '../../components/features/CreateHabitModal';
 import EditHabitModal from '../../components/features/EditHabitModal';
+import HabitAnalytics from '../../components/features/HabitAnalytics';
 import { habitService } from '../../services/habit.service';
 import type { Habit, HabitLog, CreateHabitRequest, UpdateHabitRequest } from '../../types/habit';
 
@@ -15,6 +16,7 @@ export default function HabitsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+  const [analyticsKey, setAnalyticsKey] = useState(0);
 
   useEffect(() => {
     loadHabits();
@@ -100,7 +102,8 @@ export default function HabitsPage() {
         }
       });
 
-      toast.success('Séance enregistrée avec succès');
+      toast.success('Seance enregistree avec succes');
+      setAnalyticsKey((prev) => prev + 1); // Refresh analytics
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement");
       console.error(error);
@@ -175,6 +178,9 @@ export default function HabitsPage() {
         habit={selectedHabit}
         onSubmit={handleUpdate}
       />
+
+      {/* Analytics Section */}
+      <HabitAnalytics refreshKey={analyticsKey} />
     </div>
   );
 }
