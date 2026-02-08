@@ -99,7 +99,7 @@ export const authService = {
 
   // OAuth2 Google
   getGoogleOAuthUrl(): string {
-    return 'http://localhost:8085/api/auth/oauth2/google';
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:8085'}/api/auth/oauth2/google`;
   },
 
   /**
