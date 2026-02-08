@@ -298,4 +298,53 @@ export AWS_REGION=eu-west-3
 
 ---
 
-**Dernière mise à jour:** 03 février 2026
+---
+
+## 7. Optimisation Mémoire pour Render Free (512 MB)
+
+### Problème
+Render Free tier limite à 512 MB de RAM, et Spring Boot dépasse cette limite par défaut.
+
+### Solution: Ajouter JAVA_OPTS sur Render
+
+1. **Aller sur le dashboard Render**:
+   - Ouvrir votre service `hubz-backend`
+   - Cliquer sur "Environment" dans le menu latéral
+
+2. **Ajouter la variable d'environnement `JAVA_OPTS`**:
+   ```
+   JAVA_OPTS=-Xmx256m -Xms128m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication -Djava.security.egd=file:/dev/./urandom
+   ```
+
+3. **Explication des flags JVM**:
+   - `-Xmx256m` : Heap maximum 256 MB
+   - `-Xms128m` : Heap initial 128 MB
+   - `-XX:MaxMetaspaceSize=128m` : Metaspace max 128 MB
+   - `-XX:+UseG1GC` : Garbage Collector optimisé
+   - `-XX:MaxGCPauseMillis=100` : Limite les pauses GC
+   - `-XX:+UseStringDeduplication` : Économise la mémoire sur les strings
+   - `-Djava.security.egd=file:/dev/./urandom` : Accélère le démarrage
+
+4. **Cliquer sur "Save Changes"** - Render va redéployer automatiquement
+
+5. **Vérifier les logs** pour voir si l'application démarre correctement
+
+### Autres optimisations déjà appliquées
+
+Les fichiers suivants ont été modifiés pour réduire la consommation mémoire:
+
+- `application-prod.yml`:
+  - Pool Hikari réduit: `maximum-pool-size: 3` (au lieu de 10)
+  - Cache désactivé: `type: none`
+  - Logs réduits: niveau `WARN` au lieu de `INFO`
+
+### Alternative: Upgrade vers plan payant
+
+Si l'application a toujours besoin de plus de mémoire:
+- **Render Starter**: 7$/mois - 512 MB garantis
+- **Render Standard**: 25$/mois - 2 GB
+- Voir: https://render.com/pricing
+
+---
+
+**Dernière mise à jour:** 08 février 2026

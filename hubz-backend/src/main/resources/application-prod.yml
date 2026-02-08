@@ -19,8 +19,8 @@ spring:
     driver-class-name: org.postgresql.Driver
     # Connection pool settings
     hikari:
-      minimum-idle: 2
-      maximum-pool-size: 10
+      minimum-idle: 1
+      maximum-pool-size: 3
       idle-timeout: 30000
       max-lifetime: 1800000
       connection-timeout: 30000
@@ -53,15 +53,10 @@ spring:
       enabled: false
 
   # ========================
-  # Redis (Optional - for caching)
+  # Redis (DISABLED for memory optimization)
   # ========================
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
   cache:
-    # Use 'simple' if Redis is not available
-    type: ${CACHE_TYPE:simple}
+    type: none
 
   # ========================
   # Mail Configuration
@@ -130,17 +125,13 @@ file:
 # ========================
 logging:
   level:
-    root: INFO
+    root: WARN
     com.hubz: INFO
-    org.springframework: WARN
-    org.springframework.security: WARN
-    org.hibernate: WARN
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql: WARN
+    org.springframework: ERROR
+    org.springframework.security: ERROR
+    org.hibernate: ERROR
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-  file:
-    name: ${LOG_FILE:/var/log/hubz/hubz-backend.log}
 
 # ========================
 # Actuator / Monitoring
