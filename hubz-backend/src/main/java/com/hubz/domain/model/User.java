@@ -22,6 +22,19 @@ public class User {
     private String firstName;
     private String lastName;
     private String description;
+    private String profilePhotoUrl;
+    private Boolean emailVerified;
+    private Boolean twoFactorEnabled;
+    private String twoFactorSecret;
+    private String oauthProvider;
+    private String oauthProviderId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    /**
+     * Check if 2FA is enabled for this user.
+     */
+    public boolean isTwoFactorEnabled() {
+        return Boolean.TRUE.equals(twoFactorEnabled);
+    }
 }

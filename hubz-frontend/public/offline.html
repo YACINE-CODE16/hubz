@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3B82F6">
+  <title>Hubz - Offline</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    :root {
+      --color-bg: #0A0A0F;
+      --color-card: #12121A;
+      --color-text: #F8FAFC;
+      --color-text-muted: #94A3B8;
+      --color-accent: #3B82F6;
+      --color-warning: #F59E0B;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --color-bg: #F8FAFC;
+        --color-card: #FFFFFF;
+        --color-text: #0F172A;
+        --color-text-muted: #64748B;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 480px;
+      width: 100%;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 24px;
+      opacity: 0.8;
+    }
+
+    .icon-container {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: var(--color-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 32px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .wifi-icon {
+      width: 56px;
+      height: 56px;
+      color: var(--color-warning);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--color-text);
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--color-text-muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .tips {
+      background: var(--color-card);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .tips-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+    }
+
+    .tips-list {
+      list-style: none;
+    }
+
+    .tips-list li {
+      font-size: 14px;
+      color: var(--color-text-muted);
+      padding: 8px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .tips-list li::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--color-accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .button:hover {
+      background: #2563EB;
+      transform: translateY(-1px);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .status {
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-warning);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .online .status-dot {
+      background: #22C55E;
+      animation: none;
+    }
+
+    .online .status-text {
+      color: #22C55E;
+    }
+
+    /* Hide the try again button when online */
+    .online .button {
+      display: none;
+    }
+
+    /* Animation for when coming back online */
+    .reconnecting {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    footer {
+      position: fixed;
+      bottom: 24px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-container">
+      <!-- WiFi Off Icon -->
+      <svg class="wifi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h.01"/>
+        <path d="M8.5 16.429a5 5 0 0 1 7 0"/>
+        <path d="M5 12.859a10 10 0 0 1 5.17-2.69"/>
+        <path d="M19 12.859a10 10 0 0 0-2.007-1.523"/>
+        <path d="M2 8.82a15 15 0 0 1 4.177-2.643"/>
+        <path d="M22 8.82a15 15 0 0 0-11.288-3.764"/>
+        <path d="m2 2 20 20"/>
+      </svg>
+    </div>
+
+    <h1>You're Offline</h1>
+
+    <p class="subtitle">
+      It looks like you've lost your internet connection.
+      Some features may be unavailable until you're back online.
+    </p>
+
+    <div class="tips">
+      <div class="tips-title">While you wait</div>
+      <ul class="tips-list">
+        <li>Check your Wi-Fi or mobile data connection</li>
+        <li>Try moving closer to your router</li>
+        <li>Restart your network adapter or device</li>
+        <li>Previously loaded content may still be available</li>
+      </ul>
+    </div>
+
+    <button class="button" onclick="tryReconnect()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+      </svg>
+      Try Again
+    </button>
+
+    <div class="status">
+      <span class="status-dot"></span>
+      <span class="status-text">Waiting for connection...</span>
+    </div>
+  </div>
+
+  <footer>
+    Hubz - Your productivity hub
+  </footer>
+
+  <script>
+    // Check online status and update UI
+    function updateOnlineStatus() {
+      const body = document.body;
+      const statusText = document.querySelector('.status-text');
+
+      if (navigator.onLine) {
+        body.classList.add('online', 'reconnecting');
+        statusText.textContent = 'Connection restored!';
+
+        // Redirect to home after a short delay
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      } else {
+        body.classList.remove('online');
+        statusText.textContent = 'Waiting for connection...';
+      }
+    }
+
+    // Try to reconnect
+    function tryReconnect() {
+      const button = document.querySelector('.button');
+      const originalText = button.innerHTML;
+
+      // Show loading state
+      button.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+        </svg>
+        Reconnecting...
+      `;
+      button.disabled = true;
+
+      // Try to fetch the home page to check connectivity
+      fetch('/', { cache: 'no-store' })
+        .then((response) => {
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            throw new Error('Not online');
+          }
+        })
+        .catch(() => {
+          // Still offline
+          button.innerHTML = originalText;
+          button.disabled = false;
+
+          // Shake the button to indicate failure
+          button.style.animation = 'shake 0.5s ease';
+          setTimeout(() => {
+            button.style.animation = '';
+          }, 500);
+        });
+    }
+
+    // Listen for online/offline events
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // Check status on page load
+    updateOnlineStatus();
+
+    // Add shake animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

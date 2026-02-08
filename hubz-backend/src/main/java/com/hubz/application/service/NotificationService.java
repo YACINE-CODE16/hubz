@@ -2,11 +2,18 @@ package com.hubz.application.service;
 
 import com.hubz.application.dto.response.NotificationCountResponse;
 import com.hubz.application.dto.response.NotificationResponse;
+import com.hubz.application.port.out.NotificationPreferencesRepositoryPort;
 import com.hubz.application.port.out.NotificationRepositoryPort;
+import com.hubz.application.port.out.UserRepositoryPort;
 import com.hubz.domain.enums.NotificationType;
 import com.hubz.domain.exception.NotificationNotFoundException;
 import com.hubz.domain.model.Notification;
+import com.hubz.domain.model.NotificationPreferences;
+import com.hubz.domain.model.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +23,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationService {
 
     private final NotificationRepositoryPort notificationRepository;
+    private final NotificationPreferencesRepositoryPort preferencesRepository;
+    private final UserRepositoryPort userRepository;
+    private final EmailService emailService;
 
     private static final int DEFAULT_LIMIT = 50;
 
@@ -38,6 +49,7 @@ public class NotificationService {
                 .toList();
     }
 
+    @Cacheable(value = "notifications", key = "#userId")
     public NotificationCountResponse getUnreadCount(UUID userId) {
         long count = notificationRepository.countByUserIdAndReadFalse(userId);
         return NotificationCountResponse.builder()
@@ -46,6 +58,7 @@ public class NotificationService {
     }
 
     @Transactional
+    @CacheEvict(value = "notifications", key = "#userId")
     public void markAsRead(UUID notificationId, UUID userId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException(notificationId));
@@ -58,6 +71,7 @@ public class NotificationService {
     }
 
     @Transactional
+    @CacheEvict(value = "notifications", key = "#userId")
     public void markAllAsRead(UUID userId) {
         notificationRepository.markAllAsReadForUser(userId);
     }
@@ -95,7 +109,48 @@ public class NotificationService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+
+        // Send email notification if enabled in user preferences
+        sendEmailNotificationIfEnabled(userId, type, title, message, link);
+
+        return saved;
+    }
+
+    /**
+     * Check user preferences and send email notification if enabled.
+     */
+    private void sendEmailNotificationIfEnabled(UUID userId, NotificationType type, String title, String message, String link) {
+        try {
+            // Get user details
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                log.warn("Cannot send email notification: user not found for ID {}", userId);
+                return;
+            }
+
+            // Get or create notification preferences
+            NotificationPreferences preferences = preferencesRepository.findByUserId(userId)
+                    .orElse(NotificationPreferences.createDefault(userId));
+
+            // Check if email should be sent for this notification type
+            if (preferences.shouldSendEmail(type.name())) {
+                emailService.sendNotificationEmail(
+                        user.getEmail(),
+                        user.getFirstName(),
+                        type.name(),
+                        title,
+                        message,
+                        link
+                );
+                log.debug("Email notification sent to {} for type {}", user.getEmail(), type);
+            } else {
+                log.debug("Email notification skipped for user {} - disabled in preferences", userId);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the notification creation
+            log.error("Failed to send email notification to user {}: {}", userId, e.getMessage());
+        }
     }
 
     // Convenience methods for common notification types
@@ -187,6 +242,27 @@ public class NotificationService {
                 "L'evenement \"" + eventTitle + "\" commence bientot.",
                 link,
                 eventId,
+                organizationId
+        );
+    }
+
+    /**
+     * Notify a user that they have been mentioned in a comment.
+     *
+     * @param userId the user who was mentioned
+     * @param mentionedBy the name of the user who mentioned them
+     * @param taskId the task ID where the mention occurred
+     * @param taskTitle the title of the task
+     * @param organizationId the organization ID
+     */
+    public void notifyMention(UUID userId, String mentionedBy, UUID taskId, String taskTitle, UUID organizationId) {
+        createNotification(
+                userId,
+                NotificationType.MENTION,
+                "Vous avez ete mentionne",
+                mentionedBy + " vous a mentionne dans un commentaire sur \"" + taskTitle + "\".",
+                "/org/" + organizationId + "/tasks",
+                taskId,
                 organizationId
         );
     }

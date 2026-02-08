@@ -7,6 +7,7 @@ import com.hubz.infrastructure.persistence.repository.JpaTaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,6 +60,13 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
     @Override
     public List<Task> searchByTitleOrDescription(String query, List<UUID> organizationIds) {
         return jpaRepository.searchByTitleOrDescription(query, organizationIds).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Task> findByAssigneeIdAndDueDateBetween(UUID assigneeId, LocalDateTime start, LocalDateTime end) {
+        return jpaRepository.findByAssigneeIdAndDueDateBetween(assigneeId, start, end).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

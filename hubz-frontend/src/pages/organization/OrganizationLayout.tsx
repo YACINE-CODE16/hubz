@@ -22,6 +22,9 @@ export default function OrganizationLayout() {
       basePath={`/organization/${orgId}`}
       title={org?.name || 'Organisation'}
       color={org?.color}
+      logoUrl={org?.logoUrl}
+      icon={org?.icon}
+      organizationId={orgId}
     >
       <Outlet />
     </SpaceLayout>

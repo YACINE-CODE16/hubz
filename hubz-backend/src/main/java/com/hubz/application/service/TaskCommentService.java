@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,8 @@ public class TaskCommentService {
     private final TaskRepositoryPort taskRepository;
     private final UserRepositoryPort userRepository;
     private final AuthorizationService authorizationService;
+    private final MentionService mentionService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<TaskCommentResponse> getCommentsByTask(UUID taskId, UUID currentUserId) {
@@ -94,7 +97,43 @@ public class TaskCommentService {
                 .build();
 
         TaskComment savedComment = commentRepository.save(comment);
+
+        // Process @mentions and send notifications
+        processMentions(request.getContent(), task, currentUserId);
+
         return toResponse(savedComment);
+    }
+
+    /**
+     * Process @mentions in the comment content and send notifications to mentioned users.
+     */
+    private void processMentions(String content, Task task, UUID authorId) {
+        if (content == null || content.isBlank()) {
+            return;
+        }
+
+        // Get the author's name for the notification message
+        String authorName = userRepository.findById(authorId)
+                .map(user -> user.getFirstName() + " " + user.getLastName())
+                .orElse("Quelqu'un");
+
+        // Parse mentions and resolve to user IDs (excluding the author)
+        Set<UUID> mentionedUserIds = mentionService.parseMentionsAndResolve(
+                content,
+                task.getOrganizationId(),
+                authorId
+        );
+
+        // Send notifications to all mentioned users
+        for (UUID mentionedUserId : mentionedUserIds) {
+            notificationService.notifyMention(
+                    mentionedUserId,
+                    authorName,
+                    task.getId(),
+                    task.getTitle(),
+                    task.getOrganizationId()
+            );
+        }
     }
 
     @Transactional

@@ -40,4 +40,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     public boolean existsByEmail(String email) {
         return jpaUserRepository.existsByEmail(email);
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        jpaUserRepository.deleteById(id);
+    }
 }

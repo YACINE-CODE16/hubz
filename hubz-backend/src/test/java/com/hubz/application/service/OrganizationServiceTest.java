@@ -25,7 +25,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +37,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +55,9 @@ class OrganizationServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private OrganizationService organizationService;
@@ -769,6 +776,208 @@ class OrganizationServiceTest {
             assertThatThrownBy(() -> organizationService.transferOwnership(testOrg.getId(), newOwnerId, ownerId))
                     .isInstanceOf(MemberNotFoundException.class);
             verify(memberRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Upload Logo Tests")
+    class UploadLogoTests {
+
+        @Test
+        @DisplayName("Should successfully upload organization logo")
+        void shouldUploadLogo() throws IOException {
+            // Given
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "logo.png",
+                    "image/png",
+                    "test image content".getBytes()
+            );
+            String expectedLogoPath = "organization-logos/" + testOrg.getId() + ".png";
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            when(fileStorageService.storeOrganizationLogo(any(MultipartFile.class), eq(testOrg.getId())))
+                    .thenReturn(expectedLogoPath);
+            when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
+                Organization org = invocation.getArgument(0);
+                org.setLogoUrl(expectedLogoPath);
+                return org;
+            });
+
+            // When
+            OrganizationResponse response = organizationService.uploadLogo(testOrg.getId(), file, ownerId);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getLogoUrl()).isEqualTo(expectedLogoPath);
+            verify(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            verify(fileStorageService).storeOrganizationLogo(any(MultipartFile.class), eq(testOrg.getId()));
+            verify(organizationRepository).save(any(Organization.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user is not admin")
+        void shouldThrowExceptionWhenNotAdmin() {
+            // Given
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "logo.png",
+                    "image/png",
+                    "test image content".getBytes()
+            );
+            UUID nonAdminUserId = UUID.randomUUID();
+
+            doThrow(new RuntimeException("Not admin"))
+                    .when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), nonAdminUserId);
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.uploadLogo(testOrg.getId(), file, nonAdminUserId))
+                    .isInstanceOf(RuntimeException.class);
+            verify(organizationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when organization not found")
+        void shouldThrowExceptionWhenOrganizationNotFound() {
+            // Given
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "logo.png",
+                    "image/png",
+                    "test image content".getBytes()
+            );
+            UUID nonExistentOrgId = UUID.randomUUID();
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(nonExistentOrgId, ownerId);
+            when(organizationRepository.findById(nonExistentOrgId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.uploadLogo(nonExistentOrgId, file, ownerId))
+                    .isInstanceOf(OrganizationNotFoundException.class);
+            verify(organizationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when file storage fails")
+        void shouldThrowExceptionWhenStorageFails() throws IOException {
+            // Given
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "logo.png",
+                    "image/png",
+                    "test image content".getBytes()
+            );
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            when(fileStorageService.storeOrganizationLogo(any(MultipartFile.class), eq(testOrg.getId())))
+                    .thenThrow(new IOException("Storage error"));
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.uploadLogo(testOrg.getId(), file, ownerId))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Failed to store organization logo");
+            verify(organizationRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Delete Logo Tests")
+    class DeleteLogoTests {
+
+        @Test
+        @DisplayName("Should successfully delete organization logo")
+        void shouldDeleteLogo() throws IOException {
+            // Given
+            testOrg.setLogoUrl("organization-logos/" + testOrg.getId() + ".png");
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            doNothing().when(fileStorageService).deleteOrganizationLogo(testOrg.getId());
+            when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> {
+                Organization org = invocation.getArgument(0);
+                return org;
+            });
+
+            // When
+            OrganizationResponse response = organizationService.deleteLogo(testOrg.getId(), ownerId);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getLogoUrl()).isNull();
+            verify(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            verify(fileStorageService).deleteOrganizationLogo(testOrg.getId());
+            verify(organizationRepository).save(any(Organization.class));
+        }
+
+        @Test
+        @DisplayName("Should do nothing when organization has no logo")
+        void shouldDoNothingWhenNoLogo() throws IOException {
+            // Given
+            testOrg.setLogoUrl(null);
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+
+            // When
+            OrganizationResponse response = organizationService.deleteLogo(testOrg.getId(), ownerId);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getLogoUrl()).isNull();
+            verify(fileStorageService, never()).deleteOrganizationLogo(any());
+            verify(organizationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user is not admin")
+        void shouldThrowExceptionWhenNotAdmin() {
+            // Given
+            UUID nonAdminUserId = UUID.randomUUID();
+
+            doThrow(new RuntimeException("Not admin"))
+                    .when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), nonAdminUserId);
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.deleteLogo(testOrg.getId(), nonAdminUserId))
+                    .isInstanceOf(RuntimeException.class);
+            verify(organizationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when organization not found")
+        void shouldThrowExceptionWhenOrganizationNotFound() {
+            // Given
+            UUID nonExistentOrgId = UUID.randomUUID();
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(nonExistentOrgId, ownerId);
+            when(organizationRepository.findById(nonExistentOrgId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> organizationService.deleteLogo(nonExistentOrgId, ownerId))
+                    .isInstanceOf(OrganizationNotFoundException.class);
+            verify(organizationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should continue even if file deletion fails")
+        void shouldContinueEvenIfFileDeletionFails() throws IOException {
+            // Given
+            testOrg.setLogoUrl("organization-logos/" + testOrg.getId() + ".png");
+
+            doNothing().when(authorizationService).checkOrganizationAdminAccess(testOrg.getId(), ownerId);
+            when(organizationRepository.findById(testOrg.getId())).thenReturn(Optional.of(testOrg));
+            doThrow(new IOException("File deletion error")).when(fileStorageService).deleteOrganizationLogo(testOrg.getId());
+            when(organizationRepository.save(any(Organization.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            OrganizationResponse response = organizationService.deleteLogo(testOrg.getId(), ownerId);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getLogoUrl()).isNull();
+            verify(organizationRepository).save(any(Organization.class));
         }
     }
 }

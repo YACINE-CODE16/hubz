@@ -42,6 +42,26 @@ public class UserEntity {
 
     private String description;
 
+    @Column(name = "profile_photo_url")
+    private String profilePhotoUrl;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean emailVerified = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean twoFactorEnabled = false;
+
+    @Column(name = "two_factor_secret")
+    private String twoFactorSecret;
+
+    @Column(name = "oauth_provider")
+    private String oauthProvider;
+
+    @Column(name = "oauth_provider_id")
+    private String oauthProviderId;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

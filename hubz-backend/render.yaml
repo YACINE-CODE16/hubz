@@ -1,0 +1,76 @@
+# =================================================
+# Hubz Backend - Render Blueprint Configuration
+# =================================================
+# This file defines the infrastructure for deploying
+# the Hubz backend on Render.com
+#
+# Documentation: https://render.com/docs/blueprint-spec
+# =================================================
+
+services:
+  - type: web
+    name: hubz-backend
+    env: java
+    region: frankfurt  # EU region for lower latency
+    plan: free  # Use 'starter' or 'standard' for production
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/*.jar
+    healthCheckPath: /api/health
+    envVars:
+      # Spring profile
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+
+      # Database connection (from Render PostgreSQL)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hubz-db
+          property: connectionString
+
+      # JWT secret (auto-generated)
+      - key: JWT_SECRET
+        generateValue: true
+
+      # CORS configuration
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://hubz.vercel.app
+
+      # Frontend URL for email links
+      - key: FRONTEND_URL
+        value: https://hubz.vercel.app
+
+      # Mail configuration (manual setup required)
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+
+      # Google OAuth2 (optional, manual setup required)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+
+      # Email verification toggle
+      - key: EMAIL_VERIFICATION_REQUIRED
+        value: "false"
+
+      # File upload directory
+      - key: FILE_UPLOAD_DIR
+        value: /opt/render/project/src/uploads
+
+databases:
+  - name: hubz-db
+    databaseName: hubz
+    user: hubz
+    region: frankfurt  # Same region as web service
+    plan: free  # Use 'starter' or 'standard' for production
+    ipAllowList: []  # Allow all IPs (Render internal)

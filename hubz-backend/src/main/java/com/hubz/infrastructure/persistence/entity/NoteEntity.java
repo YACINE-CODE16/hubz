@@ -32,6 +32,9 @@ public class NoteEntity {
     @Column
     private String category;
 
+    @Column(name = "folder_id")
+    private UUID folderId;
+
     @Column(nullable = false)
     private UUID organizationId;
 

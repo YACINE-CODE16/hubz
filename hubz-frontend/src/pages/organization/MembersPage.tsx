@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Trash2,
   Mail,
@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Shield,
   Crown,
+  MessageSquare,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Card from '../../components/ui/Card';
@@ -25,6 +26,7 @@ import type { Invitation, CreateInvitationRequest } from '../../types/invitation
 export default function MembersPage() {
   const { orgId } = useParams<{ orgId: string }>();
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,6 +183,7 @@ export default function MembersPage() {
                 setSelectedMemberForTransfer(m);
                 setIsTransferModalOpen(true);
               }}
+              onMessage={(m) => navigate(`/personal/messages?user=${m.userId}`)}
             />
           ))}
         </div>
@@ -266,6 +269,7 @@ interface MemberCardProps {
   onRoleChange: (userId: string, role: MemberRole) => void;
   onRemove: (member: Member) => void;
   onTransferOwnership: (member: Member) => void;
+  onMessage: (member: Member) => void;
 }
 
 function MemberCard({
@@ -276,6 +280,7 @@ function MemberCard({
   onRoleChange,
   onRemove,
   onTransferOwnership,
+  onMessage,
 }: MemberCardProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -326,15 +331,33 @@ function MemberCard({
     { role: 'VIEWER', label: 'Lecteur', description: 'Peut uniquement voir' },
   ];
 
+  const getPhotoUrl = () => {
+    if (!member.profilePhotoUrl) return null;
+    if (member.profilePhotoUrl.startsWith('http')) {
+      return member.profilePhotoUrl;
+    }
+    return `/uploads/${member.profilePhotoUrl}`;
+  };
+
+  const photoUrl = getPhotoUrl();
+
   return (
     <Card className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent">
-          <span className="text-sm font-medium">
-            {member.firstName[0]}
-            {member.lastName[0]}
-          </span>
-        </div>
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt={`${member.firstName} ${member.lastName}`}
+            className="h-10 w-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent">
+            <span className="text-sm font-medium">
+              {member.firstName[0]}
+              {member.lastName[0]}
+            </span>
+          </div>
+        )}
         <div>
           <p className="font-medium text-gray-900 dark:text-gray-100">
             {member.firstName} {member.lastName}
@@ -423,6 +446,17 @@ function MemberCard({
             {getRoleIcon(member.role)}
             {getRoleLabel(member.role)}
           </span>
+        )}
+
+        {/* Message button */}
+        {!isCurrentUser && (
+          <button
+            onClick={() => onMessage(member)}
+            className="rounded-lg p-2 text-gray-400 hover:bg-accent/10 hover:text-accent dark:hover:bg-accent/10 dark:hover:text-accent"
+            title="Envoyer un message"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </button>
         )}
 
         {/* Remove button */}

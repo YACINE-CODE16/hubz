@@ -34,35 +34,50 @@ interface SpaceCardProps {
   description?: string | null;
   icon?: string | null;
   color?: string | null;
+  logoUrl?: string | null;
   to: string;
   className?: string;
 }
 
-export default function SpaceCard({ name, description, icon, color, to, className }: SpaceCardProps) {
+export default function SpaceCard({ name, description, icon, color, logoUrl, to, className }: SpaceCardProps) {
   const navigate = useNavigate();
   const Icon = (icon && iconMap[icon]) || User;
+
+  const getLogoUrl = () => {
+    if (!logoUrl) return null;
+    if (logoUrl.startsWith('http')) return logoUrl;
+    return `/uploads/${logoUrl}`;
+  };
 
   return (
     <Card
       onClick={() => navigate(to)}
       className={cn(
-        'cursor-pointer p-5 transition-all hover:scale-[1.02] hover:shadow-md',
+        'cursor-pointer p-4 transition-all hover:scale-[1.02] hover:shadow-md sm:p-5',
         className,
       )}
     >
-      <div className="flex items-start gap-4">
-        <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
-          style={{ backgroundColor: color || '#3B82F6' }}
-        >
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+      <div className="flex items-center gap-3 sm:items-start sm:gap-4">
+        {logoUrl ? (
+          <img
+            src={getLogoUrl() || ''}
+            alt={name}
+            className="h-10 w-10 shrink-0 rounded-lg object-cover sm:h-11 sm:w-11"
+          />
+        ) : (
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11"
+            style={{ backgroundColor: color || '#3B82F6' }}
+          >
+            <Icon className="h-5 w-5 text-white" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate sm:text-base">
             {name}
           </h3>
           {description && (
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-1 sm:mt-1 sm:text-sm sm:line-clamp-2">
               {description}
             </p>
           )}

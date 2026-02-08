@@ -1,0 +1,77 @@
+# =============================================================================
+# Hubz Backend - Docker Ignore
+# Excludes files not needed in the Docker build context
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build output
+target/
+!target/*.jar
+
+# Test files
+src/test/
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+
+# Logs
+*.log
+logs/
+
+# Local configuration
+.env
+.env.*
+application-local.yml
+application-local.properties
+
+# Database files (H2)
+data/
+*.mv.db
+*.trace.db
+
+# Upload directories (use volumes in production)
+uploads/
+
+# Documentation
+README.md
+CLAUDE.md
+FEATURES.md
+*.md
+
+# CI/CD
+.github/
+Jenkinsfile
+.gitlab-ci.yml
+
+# Docker (don't include docker files in context)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Coverage reports
+coverage/
+jacoco/

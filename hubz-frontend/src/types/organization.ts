@@ -5,6 +5,7 @@ export interface Organization {
   icon: string | null;
   color: string | null;
   readme: string | null;
+  logoUrl: string | null;
   ownerId: string;
   createdAt: string;
 }
@@ -32,6 +33,7 @@ export interface Member {
   firstName: string;
   lastName: string;
   email: string;
+  profilePhotoUrl: string | null;
   role: MemberRole;
   joinedAt: string;
 }

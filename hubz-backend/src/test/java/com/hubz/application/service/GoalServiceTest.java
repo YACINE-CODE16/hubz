@@ -3,6 +3,8 @@ package com.hubz.application.service;
 import com.hubz.application.dto.request.CreateGoalRequest;
 import com.hubz.application.dto.request.UpdateGoalRequest;
 import com.hubz.application.dto.response.GoalResponse;
+import com.hubz.application.dto.response.TaskResponse;
+import com.hubz.application.port.out.GoalDeadlineNotificationRepositoryPort;
 import com.hubz.application.port.out.GoalRepositoryPort;
 import com.hubz.application.port.out.TaskRepositoryPort;
 import com.hubz.domain.enums.GoalType;
@@ -44,6 +46,9 @@ class GoalServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private GoalDeadlineNotificationRepositoryPort deadlineNotificationRepository;
 
     @InjectMocks
     private GoalService goalService;
@@ -413,6 +418,7 @@ class GoalServiceTest {
             // Given
             when(goalRepository.findById(goalId)).thenReturn(Optional.of(testOrgGoal));
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            doNothing().when(deadlineNotificationRepository).deleteByGoalId(goalId);
             doNothing().when(goalRepository).deleteById(goalId);
 
             // When
@@ -421,6 +427,7 @@ class GoalServiceTest {
             // Then
             verify(goalRepository).findById(goalId);
             verify(authorizationService).checkOrganizationAccess(organizationId, userId);
+            verify(deadlineNotificationRepository).deleteByGoalId(goalId);
             verify(goalRepository).deleteById(goalId);
         }
 
@@ -429,6 +436,7 @@ class GoalServiceTest {
         void shouldDeletePersonalGoalByOwner() {
             // Given
             when(goalRepository.findById(testPersonalGoal.getId())).thenReturn(Optional.of(testPersonalGoal));
+            doNothing().when(deadlineNotificationRepository).deleteByGoalId(testPersonalGoal.getId());
             doNothing().when(goalRepository).deleteById(testPersonalGoal.getId());
 
             // When
@@ -436,6 +444,7 @@ class GoalServiceTest {
 
             // Then
             verify(authorizationService, never()).checkOrganizationAccess(any(), any());
+            verify(deadlineNotificationRepository).deleteByGoalId(testPersonalGoal.getId());
             verify(goalRepository).deleteById(testPersonalGoal.getId());
         }
 
@@ -450,6 +459,7 @@ class GoalServiceTest {
             assertThatThrownBy(() -> goalService.delete(nonExistentId, userId))
                     .isInstanceOf(GoalNotFoundException.class);
             verify(goalRepository, never()).deleteById(any());
+            verify(deadlineNotificationRepository, never()).deleteByGoalId(any());
         }
 
         @Test
@@ -463,6 +473,23 @@ class GoalServiceTest {
             assertThatThrownBy(() -> goalService.delete(testPersonalGoal.getId(), otherUserId))
                     .isInstanceOf(GoalNotFoundException.class);
             verify(goalRepository, never()).deleteById(any());
+            verify(deadlineNotificationRepository, never()).deleteByGoalId(any());
+        }
+
+        @Test
+        @DisplayName("Should cleanup deadline notifications when deleting goal")
+        void shouldCleanupDeadlineNotificationsWhenDeletingGoal() {
+            // Given
+            when(goalRepository.findById(goalId)).thenReturn(Optional.of(testOrgGoal));
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            doNothing().when(deadlineNotificationRepository).deleteByGoalId(goalId);
+            doNothing().when(goalRepository).deleteById(goalId);
+
+            // When
+            goalService.delete(goalId, userId);
+
+            // Then
+            verify(deadlineNotificationRepository).deleteByGoalId(goalId);
         }
     }
 
@@ -500,6 +527,178 @@ class GoalServiceTest {
             // Then
             assertThat(goals.get(0).getTotalTasks()).isEqualTo(0);
             assertThat(goals.get(0).getCompletedTasks()).isEqualTo(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Goal By Id Tests")
+    class GetByIdTests {
+
+        @Test
+        @DisplayName("Should successfully get organization goal by id")
+        void shouldGetOrganizationGoalById() {
+            // Given
+            when(goalRepository.findById(goalId)).thenReturn(Optional.of(testOrgGoal));
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(taskRepository.findByGoalId(goalId)).thenReturn(List.of(testTask, completedTask));
+
+            // When
+            GoalResponse response = goalService.getById(goalId, userId);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(goalId);
+            assertThat(response.getTitle()).isEqualTo(testOrgGoal.getTitle());
+            assertThat(response.getTotalTasks()).isEqualTo(2);
+            assertThat(response.getCompletedTasks()).isEqualTo(1);
+            verify(authorizationService).checkOrganizationAccess(organizationId, userId);
+        }
+
+        @Test
+        @DisplayName("Should successfully get personal goal by id")
+        void shouldGetPersonalGoalById() {
+            // Given
+            when(goalRepository.findById(testPersonalGoal.getId())).thenReturn(Optional.of(testPersonalGoal));
+            when(taskRepository.findByGoalId(testPersonalGoal.getId())).thenReturn(List.of());
+
+            // When
+            GoalResponse response = goalService.getById(testPersonalGoal.getId(), userId);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(testPersonalGoal.getId());
+            assertThat(response.getOrganizationId()).isNull();
+            verify(authorizationService, never()).checkOrganizationAccess(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when goal not found")
+        void shouldThrowExceptionWhenGoalNotFound() {
+            // Given
+            UUID nonExistentId = UUID.randomUUID();
+            when(goalRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> goalService.getById(nonExistentId, userId))
+                    .isInstanceOf(GoalNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when accessing personal goal by non-owner")
+        void shouldThrowExceptionWhenNonOwnerAccessesPersonalGoal() {
+            // Given
+            UUID otherUserId = UUID.randomUUID();
+            when(goalRepository.findById(testPersonalGoal.getId())).thenReturn(Optional.of(testPersonalGoal));
+
+            // When & Then
+            assertThatThrownBy(() -> goalService.getById(testPersonalGoal.getId(), otherUserId))
+                    .isInstanceOf(GoalNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Tasks By Goal Tests")
+    class GetTasksByGoalTests {
+
+        @Test
+        @DisplayName("Should successfully get tasks linked to organization goal")
+        void shouldGetTasksLinkedToOrganizationGoal() {
+            // Given
+            when(goalRepository.findById(goalId)).thenReturn(Optional.of(testOrgGoal));
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(taskRepository.findByGoalId(goalId)).thenReturn(List.of(testTask, completedTask));
+
+            // When
+            List<TaskResponse> tasks = goalService.getTasksByGoal(goalId, userId);
+
+            // Then
+            assertThat(tasks).hasSize(2);
+            assertThat(tasks).extracting(TaskResponse::getGoalId).containsOnly(goalId);
+            verify(authorizationService).checkOrganizationAccess(organizationId, userId);
+            verify(taskRepository).findByGoalId(goalId);
+        }
+
+        @Test
+        @DisplayName("Should successfully get tasks linked to personal goal")
+        void shouldGetTasksLinkedToPersonalGoal() {
+            // Given
+            Task personalTask = Task.builder()
+                    .id(UUID.randomUUID())
+                    .title("Personal Task")
+                    .status(TaskStatus.TODO)
+                    .goalId(testPersonalGoal.getId())
+                    .creatorId(userId)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+
+            when(goalRepository.findById(testPersonalGoal.getId())).thenReturn(Optional.of(testPersonalGoal));
+            when(taskRepository.findByGoalId(testPersonalGoal.getId())).thenReturn(List.of(personalTask));
+
+            // When
+            List<TaskResponse> tasks = goalService.getTasksByGoal(testPersonalGoal.getId(), userId);
+
+            // Then
+            assertThat(tasks).hasSize(1);
+            assertThat(tasks.get(0).getTitle()).isEqualTo("Personal Task");
+            verify(authorizationService, never()).checkOrganizationAccess(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return empty list when goal has no linked tasks")
+        void shouldReturnEmptyListWhenNoLinkedTasks() {
+            // Given
+            when(goalRepository.findById(goalId)).thenReturn(Optional.of(testOrgGoal));
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(taskRepository.findByGoalId(goalId)).thenReturn(List.of());
+
+            // When
+            List<TaskResponse> tasks = goalService.getTasksByGoal(goalId, userId);
+
+            // Then
+            assertThat(tasks).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should throw exception when goal not found")
+        void shouldThrowExceptionWhenGoalNotFound() {
+            // Given
+            UUID nonExistentId = UUID.randomUUID();
+            when(goalRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> goalService.getTasksByGoal(nonExistentId, userId))
+                    .isInstanceOf(GoalNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when accessing tasks of personal goal by non-owner")
+        void shouldThrowExceptionWhenNonOwnerAccessesPersonalGoalTasks() {
+            // Given
+            UUID otherUserId = UUID.randomUUID();
+            when(goalRepository.findById(testPersonalGoal.getId())).thenReturn(Optional.of(testPersonalGoal));
+
+            // When & Then
+            assertThatThrownBy(() -> goalService.getTasksByGoal(testPersonalGoal.getId(), otherUserId))
+                    .isInstanceOf(GoalNotFoundException.class);
+            verify(taskRepository, never()).findByGoalId(any());
+        }
+
+        @Test
+        @DisplayName("Should return tasks with correct status information")
+        void shouldReturnTasksWithCorrectStatusInfo() {
+            // Given
+            when(goalRepository.findById(goalId)).thenReturn(Optional.of(testOrgGoal));
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(taskRepository.findByGoalId(goalId)).thenReturn(List.of(testTask, completedTask));
+
+            // When
+            List<TaskResponse> tasks = goalService.getTasksByGoal(goalId, userId);
+
+            // Then
+            assertThat(tasks).hasSize(2);
+            assertThat(tasks).extracting(TaskResponse::getStatus)
+                    .containsExactlyInAnyOrder(TaskStatus.IN_PROGRESS, TaskStatus.DONE);
         }
     }
 }

@@ -1,0 +1,85 @@
+name: Frontend Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hubz-frontend/**'
+      - '.github/workflows/frontend-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'hubz-frontend/**'
+      - '.github/workflows/frontend-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Frontend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hubz-frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'hubz-frontend/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: hubz-frontend/coverage
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      - name: Check coverage threshold (70%)
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "=== Frontend Coverage Summary ==="
+            LINES_PCT=$(node -e "const c = require('./coverage/coverage-summary.json'); console.log(c.total.lines.pct)")
+            BRANCHES_PCT=$(node -e "const c = require('./coverage/coverage-summary.json'); console.log(c.total.branches.pct)")
+            FUNCTIONS_PCT=$(node -e "const c = require('./coverage/coverage-summary.json'); console.log(c.total.functions.pct)")
+            STATEMENTS_PCT=$(node -e "const c = require('./coverage/coverage-summary.json'); console.log(c.total.statements.pct)")
+
+            echo "Lines:      ${LINES_PCT}%"
+            echo "Branches:   ${BRANCHES_PCT}%"
+            echo "Functions:  ${FUNCTIONS_PCT}%"
+            echo "Statements: ${STATEMENTS_PCT}%"
+
+            # Check lines coverage against threshold
+            LINES_INT=$(echo "$LINES_PCT" | cut -d. -f1)
+            if [ "$LINES_INT" -lt 70 ]; then
+              echo "::warning::Line coverage is ${LINES_PCT}%, below the 70% threshold"
+            else
+              echo "Coverage meets the 70% threshold"
+            fi
+          else
+            echo "::warning::Coverage summary not found"
+          fi
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results
+          path: hubz-frontend/coverage/
+          retention-days: 14

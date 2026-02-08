@@ -1,5 +1,5 @@
 import api from './api';
-import type { Notification, NotificationCountResponse } from '../types/notification';
+import type { Notification, NotificationCountResponse, NotificationPreferences, UpdateNotificationPreferencesRequest } from '../types/notification';
 
 export const notificationService = {
   async getNotifications(limit: number = 50): Promise<Notification[]> {
@@ -33,5 +33,15 @@ export const notificationService = {
 
   async deleteAllNotifications(): Promise<void> {
     await api.delete('/notifications');
+  },
+
+  async getPreferences(): Promise<NotificationPreferences> {
+    const response = await api.get<NotificationPreferences>('/notifications/preferences');
+    return response.data;
+  },
+
+  async updatePreferences(request: UpdateNotificationPreferencesRequest): Promise<NotificationPreferences> {
+    const response = await api.put<NotificationPreferences>('/notifications/preferences', request);
+    return response.data;
   },
 };

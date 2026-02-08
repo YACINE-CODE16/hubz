@@ -1,0 +1,96 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hubz-backend/**'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'hubz-backend/**'
+      - '.github/workflows/backend-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Backend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hubz-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+          cache-dependency-path: 'hubz-backend/pom.xml'
+
+      - name: Run tests with coverage
+        run: ./mvnw clean test -B -q
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Generate JaCoCo coverage report
+        run: ./mvnw jacoco:report -B -q
+        if: always()
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: hubz-backend/target/site/jacoco/jacoco.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      - name: Check coverage threshold (70%)
+        if: always()
+        run: |
+          if [ -f target/site/jacoco/jacoco.csv ]; then
+            echo "=== JaCoCo Coverage Summary ==="
+            # Parse JaCoCo CSV to compute overall line coverage
+            TOTAL_MISSED=0
+            TOTAL_COVERED=0
+            while IFS=',' read -r group package class instr_missed instr_covered branch_missed branch_covered line_missed line_covered complexity_missed complexity_covered method_missed method_covered; do
+              if [ "$group" != "GROUP" ]; then
+                TOTAL_MISSED=$((TOTAL_MISSED + line_missed))
+                TOTAL_COVERED=$((TOTAL_COVERED + line_covered))
+              fi
+            done < target/site/jacoco/jacoco.csv
+
+            TOTAL=$((TOTAL_MISSED + TOTAL_COVERED))
+            if [ "$TOTAL" -gt 0 ]; then
+              COVERAGE=$((TOTAL_COVERED * 100 / TOTAL))
+              echo "Line coverage: ${COVERAGE}% (${TOTAL_COVERED}/${TOTAL} lines covered)"
+              if [ "$COVERAGE" -lt 70 ]; then
+                echo "::warning::Coverage is ${COVERAGE}%, below the 70% threshold"
+              else
+                echo "Coverage meets the 70% threshold"
+              fi
+            else
+              echo "::warning::No coverage data found"
+            fi
+          else
+            echo "::warning::JaCoCo CSV report not found"
+          fi
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            hubz-backend/target/surefire-reports/
+            hubz-backend/target/site/jacoco/
+          retention-days: 14

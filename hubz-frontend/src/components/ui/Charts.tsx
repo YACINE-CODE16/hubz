@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -8,6 +9,13 @@ import {
   Cell,
   AreaChart,
   Area,
+  ComposedChart,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Treemap,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -15,6 +23,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { Maximize2, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 // Color palette for charts
@@ -37,9 +46,10 @@ interface ChartContainerProps {
   subtitle?: string;
   children: React.ReactNode;
   className?: string;
+  fullscreenContent?: React.ReactNode;
 }
 
-export function ChartContainer({ title, subtitle, children, className }: ChartContainerProps) {
+export function ChartContainer({ title, subtitle, children, className, fullscreenContent }: ChartContainerProps) {
   return (
     <div
       className={cn(
@@ -47,10 +57,17 @@ export function ChartContainer({ title, subtitle, children, className }: ChartCo
         className,
       )}
     >
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-        {subtitle && (
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+          {subtitle && (
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+          )}
+        </div>
+        {fullscreenContent && (
+          <ChartFullscreenButton title={title} subtitle={subtitle}>
+            {fullscreenContent}
+          </ChartFullscreenButton>
         )}
       </div>
       {children}
@@ -544,6 +561,737 @@ export function StatCard({ title, value, subtitle, trend, icon, color = 'blue' }
           )}
         </div>
         {icon && <div className={cn('rounded-full p-3', colorClasses[color])}>{icon}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Burnup Chart (line chart with 2 lines: cumulative completed and total scope)
+interface BurnupChartProps {
+  data: { date: string; cumulativeCompleted: number; totalScope: number }[];
+  height?: number;
+}
+
+export function BurnupChart({ data, height = 300 }: BurnupChartProps) {
+  const chartData = data.map((d) => ({
+    date: d.date.slice(5), // Show MM-DD
+    completed: d.cumulativeCompleted,
+    scope: d.totalScope,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <LineChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+          width={40}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+        />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey="completed"
+          stroke={COLORS.success}
+          strokeWidth={2}
+          dot={false}
+          name="Completees"
+        />
+        <Line
+          type="monotone"
+          dataKey="scope"
+          stroke={COLORS.primary}
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          dot={false}
+          name="Scope total"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+// Throughput Chart (bar chart with trend line using ComposedChart)
+interface ThroughputChartProps {
+  data: { date: string; completedCount: number; rollingAverage: number | null }[];
+  height?: number;
+}
+
+export function ThroughputChart({ data, height = 300 }: ThroughputChartProps) {
+  const chartData = data.map((d) => ({
+    date: d.date.slice(5), // Show MM-DD
+    completed: d.completedCount,
+    average: d.rollingAverage,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <ComposedChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+          width={40}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+        />
+        <Legend />
+        <Bar dataKey="completed" fill={COLORS.success} radius={[4, 4, 0, 0]} name="Completees" />
+        <Line
+          type="monotone"
+          dataKey="average"
+          stroke={COLORS.warning}
+          strokeWidth={2}
+          dot={false}
+          name="Moyenne 7j"
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
+// Cycle Time Histogram
+interface CycleTimeHistogramProps {
+  data: { bucket: string; count: number; percentage: number }[];
+  height?: number;
+}
+
+export function CycleTimeHistogram({ data, height = 300 }: CycleTimeHistogramProps) {
+  const chartData = data.map((d) => ({
+    name: d.bucket,
+    value: d.count,
+    percentage: d.percentage,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+        <XAxis
+          dataKey="name"
+          tick={{ fill: '#9CA3AF', fontSize: 11 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+          width={40}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+          formatter={(value, name) => {
+            if (name === 'value') {
+              const item = chartData.find((d) => d.value === value);
+              return [`${value} taches (${item?.percentage || 0}%)`, 'Nombre'];
+            }
+            return [value, name];
+          }}
+        />
+        <Bar dataKey="value" fill={COLORS.info} radius={[4, 4, 0, 0]} name="Nombre de taches" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// Lead Time Trend Chart
+interface LeadTimeTrendChartProps {
+  data: { date: string; averageLeadTimeHours: number | null; taskCount: number }[];
+  height?: number;
+}
+
+export function LeadTimeTrendChart({ data, height = 300 }: LeadTimeTrendChartProps) {
+  const chartData = data.map((d) => ({
+    date: d.date.slice(5), // Show MM-DD
+    leadTime: d.averageLeadTimeHours ? Math.round(d.averageLeadTimeHours / 24 * 10) / 10 : null, // Convert to days
+    tasks: d.taskCount,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <LineChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+          width={40}
+          label={{ value: 'Jours', angle: -90, position: 'insideLeft', fill: '#9CA3AF', fontSize: 12 }}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+          formatter={(value: number | null, name: string) => {
+            if (name === 'leadTime' && value !== null) {
+              return [`${value} jours`, 'Lead time moyen'];
+            }
+            if (name === 'tasks') {
+              return [`${value} taches`, 'Taches completees'];
+            }
+            return [value, name];
+          }}
+        />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey="leadTime"
+          stroke={COLORS.primary}
+          strokeWidth={2}
+          dot={{ r: 4, fill: COLORS.primary }}
+          connectNulls
+          name="Lead time (jours)"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+// WIP Chart (Area chart)
+interface WIPChartProps {
+  data: { date: string; wipCount: number; todoCount: number; totalActive: number }[];
+  height?: number;
+}
+
+export function WIPChart({ data, height = 300 }: WIPChartProps) {
+  const chartData = data.map((d) => ({
+    date: d.date.slice(5), // Show MM-DD
+    wip: d.wipCount,
+    todo: d.todoCount,
+    total: d.totalActive,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+          width={40}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+        />
+        <Legend />
+        <Area
+          type="monotone"
+          dataKey="wip"
+          stackId="1"
+          stroke={COLORS.inProgress}
+          fill={COLORS.inProgress}
+          fillOpacity={0.6}
+          name="En cours"
+        />
+        <Area
+          type="monotone"
+          dataKey="todo"
+          stackId="1"
+          stroke={COLORS.todo}
+          fill={COLORS.todo}
+          fillOpacity={0.6}
+          name="A faire"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+// ===== Fullscreen Chart Modal =====
+
+interface ChartFullscreenButtonProps {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}
+
+function ChartFullscreenButton({ title, subtitle, children }: ChartFullscreenButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    },
+    [isOpen],
+  );
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+        title="Plein ecran"
+      >
+        <Maximize2 className="h-4 w-4" />
+      </button>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsOpen(false);
+          }}
+        >
+          <div className="relative mx-4 flex h-[90vh] w-full max-w-6xl flex-col rounded-2xl border border-gray-200/50 bg-light-card p-8 shadow-2xl dark:border-white/10 dark:bg-dark-card">
+            {/* Header */}
+            <div className="mb-6 flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
+                {subtitle && (
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                title="Fermer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Chart content */}
+            <div className="flex-1 overflow-auto">
+              {children}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function ChartFullscreenModal({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    },
+    [onClose],
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, handleKeyDown]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="relative mx-4 flex h-[90vh] w-full max-w-6xl flex-col rounded-2xl border border-gray-200/50 bg-light-card p-8 shadow-2xl dark:border-white/10 dark:bg-dark-card">
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
+            {subtitle && (
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            title="Fermer (Echap)"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// ===== Radar Chart Component =====
+
+interface RadarChartData {
+  subject: string;
+  value: number;
+  fullMark?: number;
+}
+
+interface SimpleRadarChartProps {
+  data: RadarChartData[];
+  height?: number;
+  color?: string;
+  fillOpacity?: number;
+}
+
+export function SimpleRadarChart({
+  data,
+  height = 350,
+  color = COLORS.primary,
+  fillOpacity = 0.3,
+}: SimpleRadarChartProps) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+        <PolarGrid stroke="#374151" strokeOpacity={0.5} />
+        <PolarAngleAxis
+          dataKey="subject"
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+        />
+        <PolarRadiusAxis
+          angle={30}
+          domain={[0, 100]}
+          tick={{ fill: '#9CA3AF', fontSize: 10 }}
+          tickCount={5}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+          formatter={(value: number) => [`${value}%`, 'Taux de completion']}
+        />
+        <Radar
+          name="Completion"
+          dataKey="value"
+          stroke={color}
+          fill={color}
+          fillOpacity={fillOpacity}
+          strokeWidth={2}
+        />
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// Multi-data Radar Chart (for comparison - e.g., this week vs last week)
+interface ComparisonRadarChartProps {
+  data: RadarChartData[];
+  comparisonData?: RadarChartData[];
+  height?: number;
+  color?: string;
+  comparisonColor?: string;
+  labels?: { current: string; comparison: string };
+}
+
+export function ComparisonRadarChart({
+  data,
+  comparisonData,
+  height = 350,
+  color = COLORS.primary,
+  comparisonColor = COLORS.warning,
+  labels = { current: 'Cette semaine', comparison: 'Semaine derniere' },
+}: ComparisonRadarChartProps) {
+  // Merge data - both datasets must have the same subjects
+  const mergedData = data.map((item) => {
+    const comparison = comparisonData?.find((c) => c.subject === item.subject);
+    return {
+      subject: item.subject,
+      current: item.value,
+      comparison: comparison?.value ?? 0,
+      fullMark: item.fullMark ?? 100,
+    };
+  });
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RadarChart cx="50%" cy="50%" outerRadius="75%" data={mergedData}>
+        <PolarGrid stroke="#374151" strokeOpacity={0.5} />
+        <PolarAngleAxis
+          dataKey="subject"
+          tick={{ fill: '#9CA3AF', fontSize: 12 }}
+        />
+        <PolarRadiusAxis
+          angle={30}
+          domain={[0, 100]}
+          tick={{ fill: '#9CA3AF', fontSize: 10 }}
+          tickCount={5}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+          formatter={(value: number) => [`${value}%`]}
+        />
+        <Legend />
+        <Radar
+          name={labels.current}
+          dataKey="current"
+          stroke={color}
+          fill={color}
+          fillOpacity={0.3}
+          strokeWidth={2}
+        />
+        {comparisonData && (
+          <Radar
+            name={labels.comparison}
+            dataKey="comparison"
+            stroke={comparisonColor}
+            fill={comparisonColor}
+            fillOpacity={0.15}
+            strokeWidth={2}
+            strokeDasharray="5 5"
+          />
+        )}
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// ===== Treemap Chart Component =====
+
+interface TreemapDataItem {
+  name: string;
+  value: number;
+  color?: string;
+  children?: TreemapDataItem[];
+}
+
+interface SimpleTreemapProps {
+  data: TreemapDataItem[];
+  height?: number;
+}
+
+// Custom content renderer for Treemap cells
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function TreemapContent(props: any) {
+  const { x, y, width, height: h, name, size, index, color } = props;
+  const fillColor = color || PIE_COLORS[(index || 0) % PIE_COLORS.length];
+  const showText = width > 50 && h > 30;
+  const showValue = width > 70 && h > 45;
+
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={h}
+        fill={fillColor}
+        fillOpacity={0.85}
+        stroke="#1F2937"
+        strokeWidth={2}
+        rx={4}
+        ry={4}
+      />
+      {showText && (
+        <text
+          x={x + width / 2}
+          y={y + h / 2 - (showValue ? 8 : 0)}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="#FFFFFF"
+          fontSize={width > 100 ? 13 : 11}
+          fontWeight={600}
+        >
+          {name && name.length > 12 ? name.slice(0, 11) + '...' : name}
+        </text>
+      )}
+      {showValue && (
+        <text
+          x={x + width / 2}
+          y={y + h / 2 + 12}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="#FFFFFFCC"
+          fontSize={11}
+        >
+          {size}
+        </text>
+      )}
+    </g>
+  );
+}
+
+export function SimpleTreemap({ data, height = 350 }: SimpleTreemapProps) {
+  // Recharts Treemap requires the data in a specific format
+  const treemapData = data.map((item, index) => ({
+    name: item.name,
+    size: item.value,
+    color: item.color || PIE_COLORS[index % PIE_COLORS.length],
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <Treemap
+        data={treemapData}
+        dataKey="size"
+        nameKey="name"
+        content={<TreemapContent />}
+      >
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2937',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F3F4F6',
+          }}
+          formatter={(value: number) => [value, 'Taches']}
+        />
+      </Treemap>
+    </ResponsiveContainer>
+  );
+}
+
+// ===== Period Comparison Indicator =====
+
+interface PeriodComparisonProps {
+  currentValue: number;
+  previousValue: number;
+  label?: string;
+  format?: 'number' | 'percentage' | 'hours';
+  invertColors?: boolean;
+}
+
+export function PeriodComparisonIndicator({
+  currentValue,
+  previousValue,
+  label = 'vs semaine derniere',
+  format = 'number',
+  invertColors = false,
+}: PeriodComparisonProps) {
+  const diff = currentValue - previousValue;
+  const percentChange = previousValue > 0
+    ? Math.round((diff / previousValue) * 100)
+    : currentValue > 0 ? 100 : 0;
+
+  const isPositive = invertColors ? diff < 0 : diff > 0;
+  const isNeutral = diff === 0;
+
+  const formatValue = (val: number) => {
+    switch (format) {
+      case 'percentage':
+        return `${val}%`;
+      case 'hours':
+        return `${val}h`;
+      default:
+        return val.toString();
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-gray-200/50 bg-gray-50 p-3 dark:border-white/5 dark:bg-gray-800/50">
+      <div className="flex-1">
+        <div className="flex items-baseline gap-2">
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            {formatValue(currentValue)}
+          </span>
+          <span className="text-sm text-gray-400">
+            vs {formatValue(previousValue)}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+      </div>
+      <div
+        className={cn(
+          'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
+          isNeutral
+            ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+            : isPositive
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+              : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+        )}
+      >
+        {isNeutral ? (
+          '='
+        ) : (
+          <>
+            {diff > 0 ? '+' : ''}
+            {percentChange}%
+          </>
+        )}
       </div>
     </div>
   );

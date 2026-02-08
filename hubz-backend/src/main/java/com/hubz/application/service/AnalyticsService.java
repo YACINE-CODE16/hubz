@@ -1,5 +1,6 @@
 package com.hubz.application.service;
 
+import com.hubz.application.dto.request.AnalyticsFilterRequest;
 import com.hubz.application.dto.response.*;
 import com.hubz.application.dto.response.TaskAnalyticsResponse.*;
 import com.hubz.application.dto.response.MemberAnalyticsResponse.*;
@@ -11,6 +12,7 @@ import com.hubz.domain.enums.TaskPriority;
 import com.hubz.domain.enums.TaskStatus;
 import com.hubz.domain.model.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -31,16 +33,82 @@ public class AnalyticsService {
     private final OrganizationMemberRepositoryPort memberRepository;
     private final UserRepositoryPort userRepository;
     private final AuthorizationService authorizationService;
+    private final TeamRepositoryPort teamRepository;
+    private final TeamMemberRepositoryPort teamMemberRepository;
+    private final EventRepositoryPort eventRepository;
+    private final NoteRepositoryPort noteRepository;
+    private final TaskCommentRepositoryPort taskCommentRepository;
 
     private static final int OVERLOAD_THRESHOLD = 10; // tasks considered as overloaded
+    private static final int DEFAULT_INACTIVE_DAYS_THRESHOLD = 14;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    // ==================== FILTER LOGIC ====================
+
+    /**
+     * Apply dynamic filters to a list of tasks.
+     * Filters by date range (on createdAt), member/assignee IDs, statuses, and priorities.
+     */
+    List<Task> applyFilters(List<Task> tasks, AnalyticsFilterRequest filters) {
+        if (filters == null || !filters.hasAnyFilter()) {
+            return tasks;
+        }
+
+        return tasks.stream()
+                .filter(t -> {
+                    // Date range filter (based on createdAt)
+                    if (filters.getStartDate() != null && t.getCreatedAt() != null) {
+                        if (t.getCreatedAt().toLocalDate().isBefore(filters.getStartDate())) {
+                            return false;
+                        }
+                    }
+                    if (filters.getEndDate() != null && t.getCreatedAt() != null) {
+                        if (t.getCreatedAt().toLocalDate().isAfter(filters.getEndDate())) {
+                            return false;
+                        }
+                    }
+                    // Member / assignee filter
+                    if (filters.getMemberIds() != null && !filters.getMemberIds().isEmpty()) {
+                        if (t.getAssigneeId() == null || !filters.getMemberIds().contains(t.getAssigneeId())) {
+                            return false;
+                        }
+                    }
+                    // Status filter
+                    if (filters.getStatuses() != null && !filters.getStatuses().isEmpty()) {
+                        if (t.getStatus() == null || !filters.getStatuses().contains(t.getStatus())) {
+                            return false;
+                        }
+                    }
+                    // Priority filter
+                    if (filters.getPriorities() != null && !filters.getPriorities().isEmpty()) {
+                        if (t.getPriority() == null || !filters.getPriorities().contains(t.getPriority())) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+    }
 
     // ==================== TASK ANALYTICS ====================
 
+    /**
+     * Get task analytics without filters (backward-compatible).
+     * Result is cached in the "analytics" cache with orgId as key.
+     */
+    @Cacheable(value = "analytics", key = "#organizationId")
     public TaskAnalyticsResponse getTaskAnalytics(UUID organizationId, UUID currentUserId) {
+        return getTaskAnalytics(organizationId, currentUserId, null);
+    }
+
+    /**
+     * Get task analytics with optional dynamic filters.
+     */
+    public TaskAnalyticsResponse getTaskAnalytics(UUID organizationId, UUID currentUserId, AnalyticsFilterRequest filters) {
         authorizationService.checkOrganizationAccess(organizationId, currentUserId);
 
-        List<Task> tasks = taskRepository.findByOrganizationId(organizationId);
+        List<Task> allTasks = taskRepository.findByOrganizationId(organizationId);
+        List<Task> tasks = applyFilters(allTasks, filters);
         LocalDate today = LocalDate.now();
 
         // Basic counts
@@ -93,6 +161,27 @@ public class AnalyticsService {
         // Cumulative Flow Diagram
         List<CumulativeFlowData> cumulativeFlowDiagram = calculateCumulativeFlow(tasks, 30);
 
+        // Advanced analytics - Burnup chart
+        List<BurnupData> burnupChart = calculateBurnupChart(tasks, 30);
+
+        // Advanced analytics - Throughput chart with 7-day rolling average
+        List<ThroughputData> throughputChart = calculateThroughputChart(tasks, 30);
+
+        // Advanced analytics - Cycle time distribution
+        List<CycleTimeBucket> cycleTimeDistribution = calculateCycleTimeDistribution(tasks);
+
+        // Advanced analytics - Lead time trend (last 12 weeks)
+        List<LeadTimeData> leadTimeTrend = calculateLeadTimeTrend(tasks, 12);
+        Double averageLeadTimeHours = calculateAverageLeadTime(tasks);
+
+        // Advanced analytics - WIP chart
+        List<WIPData> wipChart = calculateWIPChart(tasks, 30);
+        Double averageWIP = calculateAverageWIP(wipChart);
+
+        // Status time tracking
+        Double avgTimeInTodoHours = calculateAverageTimeInStatus(tasks, TaskStatus.TODO);
+        Double avgTimeInProgressHours = calculateAverageTimeInStatus(tasks, TaskStatus.IN_PROGRESS);
+
         return TaskAnalyticsResponse.builder()
                 .totalTasks(totalTasks)
                 .todoCount(todoCount)
@@ -102,13 +191,22 @@ public class AnalyticsService {
                 .overdueCount(overdueCount)
                 .overdueRate(Math.round(overdueRate * 100.0) / 100.0)
                 .averageCompletionTimeHours(avgCompletionTimeHours)
+                .averageTimeInTodoHours(avgTimeInTodoHours)
+                .averageTimeInProgressHours(avgTimeInProgressHours)
                 .tasksByPriority(tasksByPriority)
                 .tasksByStatus(tasksByStatus)
                 .tasksCreatedOverTime(tasksCreatedOverTime)
                 .tasksCompletedOverTime(tasksCompletedOverTime)
                 .burndownChart(burndownChart)
+                .burnupChart(burnupChart)
                 .velocityChart(velocityChart)
                 .cumulativeFlowDiagram(cumulativeFlowDiagram)
+                .throughputChart(throughputChart)
+                .cycleTimeDistribution(cycleTimeDistribution)
+                .leadTimeTrend(leadTimeTrend)
+                .averageLeadTimeHours(averageLeadTimeHours)
+                .wipChart(wipChart)
+                .averageWIP(averageWIP)
                 .build();
     }
 
@@ -279,13 +377,309 @@ public class AnalyticsService {
         return result;
     }
 
+    // ==================== ADVANCED TASK ANALYTICS ====================
+
+    private List<BurnupData> calculateBurnupChart(List<Task> tasks, int days) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(days);
+
+        List<BurnupData> result = new ArrayList<>();
+
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            final LocalDate currentDate = date;
+
+            // Cumulative completed: all tasks completed up to this date
+            long cumulativeCompleted = tasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.DONE
+                            && t.getUpdatedAt() != null
+                            && !t.getUpdatedAt().toLocalDate().isAfter(currentDate))
+                    .count();
+
+            // Total scope: all tasks created up to this date
+            long totalScope = tasks.stream()
+                    .filter(t -> t.getCreatedAt() != null
+                            && !t.getCreatedAt().toLocalDate().isAfter(currentDate))
+                    .count();
+
+            result.add(BurnupData.builder()
+                    .date(currentDate.format(DATE_FORMATTER))
+                    .cumulativeCompleted(cumulativeCompleted)
+                    .totalScope(totalScope)
+                    .build());
+        }
+        return result;
+    }
+
+    private List<ThroughputData> calculateThroughputChart(List<Task> tasks, int days) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(days);
+
+        // First, calculate daily completions
+        Map<LocalDate, Long> dailyCompletions = tasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.DONE && t.getUpdatedAt() != null)
+                .filter(t -> !t.getUpdatedAt().toLocalDate().isBefore(startDate))
+                .collect(Collectors.groupingBy(
+                        t -> t.getUpdatedAt().toLocalDate(),
+                        Collectors.counting()
+                ));
+
+        List<ThroughputData> result = new ArrayList<>();
+        List<Long> last7Days = new ArrayList<>();
+
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            long completedCount = dailyCompletions.getOrDefault(date, 0L);
+
+            // Maintain rolling window
+            last7Days.add(completedCount);
+            if (last7Days.size() > 7) {
+                last7Days.remove(0);
+            }
+
+            // Calculate 7-day rolling average
+            double rollingAverage = last7Days.stream()
+                    .mapToLong(Long::longValue)
+                    .average()
+                    .orElse(0.0);
+
+            result.add(ThroughputData.builder()
+                    .date(date.format(DATE_FORMATTER))
+                    .completedCount(completedCount)
+                    .rollingAverage(Math.round(rollingAverage * 100.0) / 100.0)
+                    .build());
+        }
+        return result;
+    }
+
+    private List<CycleTimeBucket> calculateCycleTimeDistribution(List<Task> tasks) {
+        // Define buckets: <1 day, 1-3 days, 3-7 days, 1-2 weeks, 2-4 weeks, >1 month
+        List<CycleTimeBucket> buckets = new ArrayList<>();
+
+        // Get completed tasks with valid timestamps
+        List<Task> completedTasks = tasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.DONE
+                        && t.getCreatedAt() != null
+                        && t.getUpdatedAt() != null)
+                .toList();
+
+        if (completedTasks.isEmpty()) {
+            // Return empty buckets with zero counts
+            buckets.add(createBucket("<1 jour", 0, 24, 0, 0));
+            buckets.add(createBucket("1-3 jours", 24, 72, 0, 0));
+            buckets.add(createBucket("3-7 jours", 72, 168, 0, 0));
+            buckets.add(createBucket("1-2 semaines", 168, 336, 0, 0));
+            buckets.add(createBucket("2-4 semaines", 336, 672, 0, 0));
+            buckets.add(createBucket(">1 mois", 672, -1, 0, 0));
+            return buckets;
+        }
+
+        // Calculate cycle time for each task (in hours)
+        Map<String, Long> bucketCounts = new LinkedHashMap<>();
+        bucketCounts.put("<1 jour", 0L);
+        bucketCounts.put("1-3 jours", 0L);
+        bucketCounts.put("3-7 jours", 0L);
+        bucketCounts.put("1-2 semaines", 0L);
+        bucketCounts.put("2-4 semaines", 0L);
+        bucketCounts.put(">1 mois", 0L);
+
+        for (Task task : completedTasks) {
+            long hours = ChronoUnit.HOURS.between(task.getCreatedAt(), task.getUpdatedAt());
+
+            if (hours < 24) {
+                bucketCounts.merge("<1 jour", 1L, Long::sum);
+            } else if (hours < 72) {
+                bucketCounts.merge("1-3 jours", 1L, Long::sum);
+            } else if (hours < 168) {
+                bucketCounts.merge("3-7 jours", 1L, Long::sum);
+            } else if (hours < 336) {
+                bucketCounts.merge("1-2 semaines", 1L, Long::sum);
+            } else if (hours < 672) {
+                bucketCounts.merge("2-4 semaines", 1L, Long::sum);
+            } else {
+                bucketCounts.merge(">1 mois", 1L, Long::sum);
+            }
+        }
+
+        long total = completedTasks.size();
+        buckets.add(createBucket("<1 jour", 0, 24, bucketCounts.get("<1 jour"), total));
+        buckets.add(createBucket("1-3 jours", 24, 72, bucketCounts.get("1-3 jours"), total));
+        buckets.add(createBucket("3-7 jours", 72, 168, bucketCounts.get("3-7 jours"), total));
+        buckets.add(createBucket("1-2 semaines", 168, 336, bucketCounts.get("1-2 semaines"), total));
+        buckets.add(createBucket("2-4 semaines", 336, 672, bucketCounts.get("2-4 semaines"), total));
+        buckets.add(createBucket(">1 mois", 672, -1, bucketCounts.get(">1 mois"), total));
+
+        return buckets;
+    }
+
+    private CycleTimeBucket createBucket(String name, int minHours, int maxHours, long count, long total) {
+        double percentage = total > 0 ? Math.round((double) count / total * 100 * 100.0) / 100.0 : 0;
+        return CycleTimeBucket.builder()
+                .bucket(name)
+                .minHours(minHours)
+                .maxHours(maxHours)
+                .count(count)
+                .percentage(percentage)
+                .build();
+    }
+
+    private List<LeadTimeData> calculateLeadTimeTrend(List<Task> tasks, int weeks) {
+        LocalDate endDate = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+
+        List<LeadTimeData> result = new ArrayList<>();
+
+        for (int i = weeks - 1; i >= 0; i--) {
+            LocalDate weekStart = endDate.minusWeeks(i).with(weekFields.dayOfWeek(), 1);
+            LocalDate weekEnd = weekStart.plusDays(6);
+
+            // Get tasks completed in this week
+            List<Task> weekTasks = tasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.DONE
+                            && t.getCreatedAt() != null
+                            && t.getUpdatedAt() != null)
+                    .filter(t -> {
+                        LocalDate completedDate = t.getUpdatedAt().toLocalDate();
+                        return !completedDate.isBefore(weekStart) && !completedDate.isAfter(weekEnd);
+                    })
+                    .toList();
+
+            Double averageLeadTime = null;
+            if (!weekTasks.isEmpty()) {
+                double totalHours = weekTasks.stream()
+                        .mapToDouble(t -> ChronoUnit.HOURS.between(t.getCreatedAt(), t.getUpdatedAt()))
+                        .sum();
+                averageLeadTime = Math.round(totalHours / weekTasks.size() * 100.0) / 100.0;
+            }
+
+            result.add(LeadTimeData.builder()
+                    .date(weekStart.format(DATE_FORMATTER))
+                    .averageLeadTimeHours(averageLeadTime)
+                    .taskCount(weekTasks.size())
+                    .build());
+        }
+        return result;
+    }
+
+    private Double calculateAverageLeadTime(List<Task> tasks) {
+        List<Task> completedTasks = tasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.DONE
+                        && t.getCreatedAt() != null
+                        && t.getUpdatedAt() != null)
+                .toList();
+
+        if (completedTasks.isEmpty()) {
+            return null;
+        }
+
+        double totalHours = completedTasks.stream()
+                .mapToDouble(t -> ChronoUnit.HOURS.between(t.getCreatedAt(), t.getUpdatedAt()))
+                .sum();
+
+        return Math.round(totalHours / completedTasks.size() * 100.0) / 100.0;
+    }
+
+    private List<WIPData> calculateWIPChart(List<Task> tasks, int days) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(days);
+
+        List<WIPData> result = new ArrayList<>();
+
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            final LocalDate currentDate = date;
+
+            // Count tasks in IN_PROGRESS status on this date
+            // A task is in progress if it was created before/on this date and not completed before this date
+            long wipCount = tasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS
+                            && t.getCreatedAt() != null
+                            && !t.getCreatedAt().toLocalDate().isAfter(currentDate))
+                    .count();
+
+            // Count tasks in TODO status on this date
+            long todoCount = tasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.TODO
+                            && t.getCreatedAt() != null
+                            && !t.getCreatedAt().toLocalDate().isAfter(currentDate))
+                    .count();
+
+            result.add(WIPData.builder()
+                    .date(currentDate.format(DATE_FORMATTER))
+                    .wipCount(wipCount)
+                    .todoCount(todoCount)
+                    .totalActive(wipCount + todoCount)
+                    .build());
+        }
+        return result;
+    }
+
+    private Double calculateAverageWIP(List<WIPData> wipData) {
+        if (wipData.isEmpty()) {
+            return 0.0;
+        }
+        double average = wipData.stream()
+                .mapToLong(WIPData::getWipCount)
+                .average()
+                .orElse(0.0);
+        return Math.round(average * 100.0) / 100.0;
+    }
+
+    private Double calculateAverageTimeInStatus(List<Task> tasks, TaskStatus status) {
+        // This is a simplified implementation
+        // In a production system, you'd need task history to track time in each status
+        // For now, we estimate based on current state
+
+        if (status == TaskStatus.IN_PROGRESS) {
+            // For in-progress tasks, calculate time since creation
+            List<Task> inProgressTasks = tasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS && t.getCreatedAt() != null)
+                    .toList();
+
+            if (inProgressTasks.isEmpty()) {
+                return null;
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            double totalHours = inProgressTasks.stream()
+                    .mapToDouble(t -> ChronoUnit.HOURS.between(t.getCreatedAt(), now))
+                    .sum();
+
+            return Math.round(totalHours / inProgressTasks.size() * 100.0) / 100.0;
+        }
+
+        // For TODO status, we use a similar approach
+        List<Task> todoTasks = tasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.TODO && t.getCreatedAt() != null)
+                .toList();
+
+        if (todoTasks.isEmpty()) {
+            return null;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        double totalHours = todoTasks.stream()
+                .mapToDouble(t -> ChronoUnit.HOURS.between(t.getCreatedAt(), now))
+                .sum();
+
+        return Math.round(totalHours / todoTasks.size() * 100.0) / 100.0;
+    }
+
     // ==================== MEMBER ANALYTICS ====================
 
+    /**
+     * Get member analytics without filters (backward-compatible).
+     */
     public MemberAnalyticsResponse getMemberAnalytics(UUID organizationId, UUID currentUserId) {
+        return getMemberAnalytics(organizationId, currentUserId, null);
+    }
+
+    /**
+     * Get member analytics with optional dynamic filters.
+     */
+    public MemberAnalyticsResponse getMemberAnalytics(UUID organizationId, UUID currentUserId, AnalyticsFilterRequest filters) {
         authorizationService.checkOrganizationAccess(organizationId, currentUserId);
 
         List<OrganizationMember> members = memberRepository.findByOrganizationId(organizationId);
-        List<Task> tasks = taskRepository.findByOrganizationId(organizationId);
+        List<Task> allTasks = taskRepository.findByOrganizationId(organizationId);
+        List<Task> tasks = applyFilters(allTasks, filters);
         LocalDate today = LocalDate.now();
 
         // Build member productivity list
@@ -374,12 +768,28 @@ public class AnalyticsService {
         // Activity heatmap (last 30 days)
         List<ActivityData> activityHeatmap = calculateActivityHeatmap(tasks, members, 30);
 
+        // Average completion time per member (sorted fastest to slowest)
+        List<MemberCompletionTime> memberCompletionTimes = calculateMemberCompletionTimes(tasks, members);
+
+        // Inactive members detection
+        List<InactiveMember> inactiveMembers = detectInactiveMembers(organizationId, members, tasks, DEFAULT_INACTIVE_DAYS_THRESHOLD);
+
+        // Team performance comparison
+        List<TeamPerformanceComparison> teamPerformanceComparison = compareTeamPerformance(organizationId, tasks);
+
+        // Member workload heatmap
+        List<MemberWorkloadHeatmapEntry> memberWorkloadHeatmap = calculateMemberWorkloadHeatmap(tasks, members);
+
         return MemberAnalyticsResponse.builder()
                 .memberProductivity(memberProductivity)
                 .memberWorkload(memberWorkload)
                 .topPerformers(topPerformers)
                 .overloadedMembers(overloadedMembers)
                 .activityHeatmap(activityHeatmap)
+                .memberCompletionTimes(memberCompletionTimes)
+                .inactiveMembers(inactiveMembers)
+                .teamPerformanceComparison(teamPerformanceComparison)
+                .memberWorkloadHeatmap(memberWorkloadHeatmap)
                 .build();
     }
 
@@ -432,13 +842,322 @@ public class AnalyticsService {
         return result;
     }
 
+    // ==================== MEMBER COMPLETION TIME ====================
+
+    /**
+     * Calculate average completion time per member, sorted from fastest to slowest.
+     */
+    private List<MemberCompletionTime> calculateMemberCompletionTimes(List<Task> tasks, List<OrganizationMember> members) {
+        List<MemberCompletionTime> result = new ArrayList<>();
+
+        for (OrganizationMember member : members) {
+            User user = userRepository.findById(member.getUserId()).orElse(null);
+            if (user == null) continue;
+
+            String memberName = user.getFirstName() + " " + user.getLastName();
+            String memberEmail = user.getEmail();
+
+            // Get completed tasks for this member with valid timestamps
+            List<Task> completedTasks = tasks.stream()
+                    .filter(t -> member.getUserId().equals(t.getAssigneeId()))
+                    .filter(t -> t.getStatus() == TaskStatus.DONE
+                            && t.getCreatedAt() != null
+                            && t.getUpdatedAt() != null)
+                    .toList();
+
+            Double avgHours = null;
+            if (!completedTasks.isEmpty()) {
+                double totalHours = completedTasks.stream()
+                        .mapToDouble(t -> ChronoUnit.HOURS.between(t.getCreatedAt(), t.getUpdatedAt()))
+                        .sum();
+                avgHours = Math.round(totalHours / completedTasks.size() * 100.0) / 100.0;
+            }
+
+            result.add(MemberCompletionTime.builder()
+                    .memberId(member.getUserId().toString())
+                    .memberName(memberName)
+                    .memberEmail(memberEmail)
+                    .averageCompletionTimeHours(avgHours)
+                    .tasksCompleted(completedTasks.size())
+                    .build());
+        }
+
+        // Sort by average completion time ascending (fastest first), nulls last
+        result.sort((a, b) -> {
+            if (a.getAverageCompletionTimeHours() == null && b.getAverageCompletionTimeHours() == null) return 0;
+            if (a.getAverageCompletionTimeHours() == null) return 1;
+            if (b.getAverageCompletionTimeHours() == null) return -1;
+            return Double.compare(a.getAverageCompletionTimeHours(), b.getAverageCompletionTimeHours());
+        });
+
+        // Assign ranks
+        for (int i = 0; i < result.size(); i++) {
+            result.get(i).setRank(i + 1);
+        }
+
+        return result;
+    }
+
+    // ==================== INACTIVE MEMBERS ====================
+
+    /**
+     * Detect inactive members: members with no task completions, no task creations,
+     * no comments, no events, and no notes created within the specified number of days.
+     */
+    private List<InactiveMember> detectInactiveMembers(UUID organizationId, List<OrganizationMember> members,
+                                                        List<Task> tasks, int daysThreshold) {
+        LocalDate today = LocalDate.now();
+        LocalDate thresholdDate = today.minusDays(daysThreshold);
+        LocalDateTime thresholdDateTime = thresholdDate.atStartOfDay();
+
+        // Load events and notes for the organization
+        List<Event> events = eventRepository.findByOrganizationId(organizationId);
+        List<Note> notes = noteRepository.findByOrganizationId(organizationId);
+
+        List<InactiveMember> result = new ArrayList<>();
+
+        for (OrganizationMember member : members) {
+            User user = userRepository.findById(member.getUserId()).orElse(null);
+            if (user == null) continue;
+
+            UUID memberId = member.getUserId();
+            String memberName = user.getFirstName() + " " + user.getLastName();
+            String memberEmail = user.getEmail();
+
+            // Find the last activity date across all activity types
+            LocalDateTime lastActivity = null;
+
+            // 1. Check task completions (assigned tasks that were completed)
+            Optional<LocalDateTime> lastTaskCompletion = tasks.stream()
+                    .filter(t -> memberId.equals(t.getAssigneeId())
+                            && t.getStatus() == TaskStatus.DONE
+                            && t.getUpdatedAt() != null)
+                    .map(Task::getUpdatedAt)
+                    .max(Comparator.naturalOrder());
+            if (lastTaskCompletion.isPresent()) {
+                lastActivity = lastTaskCompletion.get();
+            }
+
+            // 2. Check task creation
+            Optional<LocalDateTime> lastTaskCreation = tasks.stream()
+                    .filter(t -> memberId.equals(t.getCreatorId()) && t.getCreatedAt() != null)
+                    .map(Task::getCreatedAt)
+                    .max(Comparator.naturalOrder());
+            if (lastTaskCreation.isPresent() && (lastActivity == null || lastTaskCreation.get().isAfter(lastActivity))) {
+                lastActivity = lastTaskCreation.get();
+            }
+
+            // 3. Check events created by this member
+            Optional<LocalDateTime> lastEventCreation = events.stream()
+                    .filter(e -> memberId.equals(e.getUserId()) && e.getCreatedAt() != null)
+                    .map(Event::getCreatedAt)
+                    .max(Comparator.naturalOrder());
+            if (lastEventCreation.isPresent() && (lastActivity == null || lastEventCreation.get().isAfter(lastActivity))) {
+                lastActivity = lastEventCreation.get();
+            }
+
+            // 4. Check notes created by this member
+            Optional<LocalDateTime> lastNoteCreation = notes.stream()
+                    .filter(n -> memberId.equals(n.getCreatedById()) && n.getCreatedAt() != null)
+                    .map(Note::getCreatedAt)
+                    .max(Comparator.naturalOrder());
+            if (lastNoteCreation.isPresent() && (lastActivity == null || lastNoteCreation.get().isAfter(lastActivity))) {
+                lastActivity = lastNoteCreation.get();
+            }
+
+            // Determine if inactive
+            boolean isInactive = lastActivity == null || lastActivity.isBefore(thresholdDateTime);
+
+            if (isInactive) {
+                long inactiveDays = lastActivity != null
+                        ? ChronoUnit.DAYS.between(lastActivity.toLocalDate(), today)
+                        : ChronoUnit.DAYS.between(member.getJoinedAt() != null ? member.getJoinedAt().toLocalDate() : today, today);
+
+                result.add(InactiveMember.builder()
+                        .memberId(memberId.toString())
+                        .memberName(memberName)
+                        .memberEmail(memberEmail)
+                        .lastActivityDate(lastActivity != null ? lastActivity.toLocalDate().format(DATE_FORMATTER) : null)
+                        .inactiveDays(inactiveDays)
+                        .build());
+            }
+        }
+
+        // Sort by most inactive first
+        result.sort((a, b) -> Long.compare(b.getInactiveDays(), a.getInactiveDays()));
+
+        return result;
+    }
+
+    // ==================== TEAM PERFORMANCE COMPARISON ====================
+
+    /**
+     * Compare performance across teams in an organization.
+     * Metrics: avg tasks completed, avg completion time, team velocity (tasks per week over last 4 weeks).
+     */
+    private List<TeamPerformanceComparison> compareTeamPerformance(UUID organizationId, List<Task> tasks) {
+        List<Team> teams = teamRepository.findByOrganizationId(organizationId);
+        List<TeamPerformanceComparison> result = new ArrayList<>();
+
+        LocalDate today = LocalDate.now();
+        LocalDate fourWeeksAgo = today.minusWeeks(4);
+        LocalDateTime fourWeeksAgoDateTime = fourWeeksAgo.atStartOfDay();
+
+        for (Team team : teams) {
+            List<TeamMember> teamMembers = teamMemberRepository.findByTeamId(team.getId());
+            Set<UUID> teamMemberIds = teamMembers.stream()
+                    .map(TeamMember::getUserId)
+                    .collect(Collectors.toSet());
+
+            if (teamMemberIds.isEmpty()) {
+                result.add(TeamPerformanceComparison.builder()
+                        .teamId(team.getId().toString())
+                        .teamName(team.getName())
+                        .memberCount(0)
+                        .totalTasksCompleted(0)
+                        .avgTasksCompletedPerMember(0)
+                        .avgCompletionTimeHours(null)
+                        .teamVelocity(0)
+                        .completionRate(0)
+                        .build());
+                continue;
+            }
+
+            // Tasks assigned to team members
+            List<Task> teamTasks = tasks.stream()
+                    .filter(t -> t.getAssigneeId() != null && teamMemberIds.contains(t.getAssigneeId()))
+                    .toList();
+
+            long totalCompleted = teamTasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.DONE)
+                    .count();
+
+            long totalTeamTasks = teamTasks.size();
+            double completionRate = totalTeamTasks > 0 ? (double) totalCompleted / totalTeamTasks * 100 : 0;
+
+            double avgTasksPerMember = teamMemberIds.isEmpty() ? 0 : (double) totalCompleted / teamMemberIds.size();
+
+            // Average completion time
+            List<Task> completedTasks = teamTasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.DONE
+                            && t.getCreatedAt() != null
+                            && t.getUpdatedAt() != null)
+                    .toList();
+
+            Double avgCompletionTime = null;
+            if (!completedTasks.isEmpty()) {
+                double totalHours = completedTasks.stream()
+                        .mapToDouble(t -> ChronoUnit.HOURS.between(t.getCreatedAt(), t.getUpdatedAt()))
+                        .sum();
+                avgCompletionTime = Math.round(totalHours / completedTasks.size() * 100.0) / 100.0;
+            }
+
+            // Team velocity: tasks completed in last 4 weeks, divided by 4
+            long recentCompleted = teamTasks.stream()
+                    .filter(t -> t.getStatus() == TaskStatus.DONE
+                            && t.getUpdatedAt() != null
+                            && t.getUpdatedAt().isAfter(fourWeeksAgoDateTime))
+                    .count();
+            double velocity = Math.round((double) recentCompleted / 4 * 100.0) / 100.0;
+
+            result.add(TeamPerformanceComparison.builder()
+                    .teamId(team.getId().toString())
+                    .teamName(team.getName())
+                    .memberCount(teamMemberIds.size())
+                    .totalTasksCompleted(totalCompleted)
+                    .avgTasksCompletedPerMember(Math.round(avgTasksPerMember * 100.0) / 100.0)
+                    .avgCompletionTimeHours(avgCompletionTime)
+                    .teamVelocity(velocity)
+                    .completionRate(Math.round(completionRate * 100.0) / 100.0)
+                    .build());
+        }
+
+        // Sort by total tasks completed descending
+        result.sort((a, b) -> Long.compare(b.getTotalTasksCompleted(), a.getTotalTasksCompleted()));
+
+        return result;
+    }
+
+    // ==================== MEMBER WORKLOAD HEATMAP ====================
+
+    /**
+     * Calculate workload heatmap: for each member, count active tasks per day of week.
+     * Uses task due dates to determine which day a task falls on.
+     * If no due date, uses createdAt date.
+     */
+    private List<MemberWorkloadHeatmapEntry> calculateMemberWorkloadHeatmap(List<Task> tasks, List<OrganizationMember> members) {
+        List<MemberWorkloadHeatmapEntry> result = new ArrayList<>();
+
+        // Use the last 30 days of completed/active tasks to build the heatmap
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(30);
+
+        for (OrganizationMember member : members) {
+            User user = userRepository.findById(member.getUserId()).orElse(null);
+            if (user == null) continue;
+
+            String memberName = user.getFirstName() + " " + user.getLastName();
+            UUID memberId = member.getUserId();
+
+            // Tasks assigned to this member
+            List<Task> memberTasks = tasks.stream()
+                    .filter(t -> memberId.equals(t.getAssigneeId()))
+                    .toList();
+
+            // Count tasks per day of week using task activity dates
+            Map<String, Long> tasksByDay = new LinkedHashMap<>();
+            // Initialize all days with 0
+            for (DayOfWeek day : DayOfWeek.values()) {
+                tasksByDay.put(day.name(), 0L);
+            }
+
+            // Count task activity by day of week over the last 30 days
+            for (Task task : memberTasks) {
+                // Use updatedAt for completed tasks, dueDate if set, otherwise createdAt
+                LocalDate taskDate = null;
+                if (task.getStatus() == TaskStatus.DONE && task.getUpdatedAt() != null) {
+                    taskDate = task.getUpdatedAt().toLocalDate();
+                } else if (task.getDueDate() != null) {
+                    taskDate = task.getDueDate().toLocalDate();
+                } else if (task.getCreatedAt() != null) {
+                    taskDate = task.getCreatedAt().toLocalDate();
+                }
+
+                if (taskDate != null && !taskDate.isBefore(startDate) && !taskDate.isAfter(today)) {
+                    String dayName = taskDate.getDayOfWeek().name();
+                    tasksByDay.merge(dayName, 1L, Long::sum);
+                }
+            }
+
+            result.add(MemberWorkloadHeatmapEntry.builder()
+                    .memberId(memberId.toString())
+                    .memberName(memberName)
+                    .tasksByDayOfWeek(tasksByDay)
+                    .build());
+        }
+
+        return result;
+    }
+
     // ==================== GOAL ANALYTICS ====================
 
+    /**
+     * Get goal analytics without filters (backward-compatible).
+     */
     public GoalAnalyticsResponse getGoalAnalytics(UUID organizationId, UUID currentUserId) {
+        return getGoalAnalytics(organizationId, currentUserId, null);
+    }
+
+    /**
+     * Get goal analytics with optional dynamic filters.
+     * Filters are applied to the tasks linked to each goal.
+     */
+    public GoalAnalyticsResponse getGoalAnalytics(UUID organizationId, UUID currentUserId, AnalyticsFilterRequest filters) {
         authorizationService.checkOrganizationAccess(organizationId, currentUserId);
 
         List<Goal> goals = goalRepository.findByOrganizationId(organizationId);
-        List<Task> tasks = taskRepository.findByOrganizationId(organizationId);
+        List<Task> allTasks = taskRepository.findByOrganizationId(organizationId);
+        List<Task> tasks = applyFilters(allTasks, filters);
         LocalDate today = LocalDate.now();
 
         // Calculate goal progress based on linked tasks

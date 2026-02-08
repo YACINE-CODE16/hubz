@@ -56,4 +56,10 @@ public class OrganizationMemberRepositoryAdapter implements OrganizationMemberRe
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    @Transactional
+    public void deleteAllByUserId(UUID userId) {
+        jpaRepository.deleteAllByUserId(userId);
+    }
 }

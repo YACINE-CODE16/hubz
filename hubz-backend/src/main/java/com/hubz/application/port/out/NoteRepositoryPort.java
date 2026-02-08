@@ -11,6 +11,8 @@ public interface NoteRepositoryPort {
     Optional<Note> findById(UUID id);
     List<Note> findByOrganizationId(UUID organizationId);
     List<Note> findByOrganizationIdAndCategory(UUID organizationId, String category);
+    List<Note> findByOrganizationIdAndFolderId(UUID organizationId, UUID folderId);
+    List<Note> findByOrganizationIdAndFolderIdIsNull(UUID organizationId);
     void delete(Note note);
 
     List<Note> searchByTitleOrContent(String query, List<UUID> organizationIds);

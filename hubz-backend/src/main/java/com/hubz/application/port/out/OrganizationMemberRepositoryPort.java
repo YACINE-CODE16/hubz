@@ -19,4 +19,6 @@ public interface OrganizationMemberRepositoryPort {
     void deleteByOrganizationIdAndUserId(UUID organizationId, UUID userId);
 
     List<OrganizationMember> findByUserId(UUID userId);
+
+    void deleteAllByUserId(UUID userId);
 }

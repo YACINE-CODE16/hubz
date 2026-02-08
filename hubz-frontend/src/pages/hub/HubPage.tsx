@@ -42,24 +42,24 @@ export default function HubPage() {
     <div className="min-h-screen bg-light-base dark:bg-dark-base">
       {/* Header */}
       <header className="border-b border-gray-200/50 dark:border-white/10 bg-light-card/50 dark:bg-dark-card/50 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <h1 className="text-xl font-bold text-accent">Hubz</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+          <h1 className="text-lg font-bold text-accent sm:text-xl">Hubz</h1>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <span className="hidden text-sm text-gray-600 dark:text-gray-400 sm:block">
               {user?.firstName} {user?.lastName}
             </span>
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4" />
-              Déconnexion
+              <span className="hidden sm:inline">Deconnexion</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="mx-auto max-w-5xl px-6 py-8">
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
         {/* Greeting */}
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 sm:text-2xl">
           Bonjour {user?.firstName}
         </h2>
 
@@ -87,6 +87,7 @@ export default function HubPage() {
                 description={org.description}
                 icon={org.icon}
                 color={org.color}
+                logoUrl={org.logoUrl}
                 to={`/organization/${org.id}/tasks`}
               />
             ))}

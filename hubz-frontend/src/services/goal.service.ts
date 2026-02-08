@@ -5,6 +5,7 @@ import type {
   CreateGoalRequest,
   UpdateGoalRequest,
 } from '../types/goal';
+import type { Task } from '../types/task';
 
 export const goalService = {
   async getByOrganization(organizationId: string): Promise<Goal[]> {
@@ -34,6 +35,16 @@ export const goalService = {
 
   async delete(id: string): Promise<void> {
     await api.delete(`/goals/${id}`);
+  },
+
+  async getById(id: string): Promise<Goal> {
+    const response = await api.get<Goal>(`/goals/${id}`);
+    return response.data;
+  },
+
+  async getTasksByGoal(goalId: string): Promise<Task[]> {
+    const response = await api.get<Task[]>(`/goals/${goalId}/tasks`);
+    return response.data;
   },
 
   async getPersonalAnalytics(): Promise<GoalAnalytics> {

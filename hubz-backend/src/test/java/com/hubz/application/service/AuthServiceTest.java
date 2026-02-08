@@ -5,6 +5,7 @@ import com.hubz.application.dto.request.RegisterRequest;
 import com.hubz.application.dto.response.AuthResponse;
 import com.hubz.application.dto.response.UserResponse;
 import com.hubz.application.port.out.JwtTokenPort;
+import com.hubz.application.port.out.TotpServicePort;
 import com.hubz.application.port.out.UserRepositoryPort;
 import com.hubz.domain.exception.InvalidCredentialsException;
 import com.hubz.domain.exception.UserAlreadyExistsException;
@@ -44,6 +45,15 @@ class AuthServiceTest {
     @Mock
     private JwtTokenPort jwtTokenPort;
 
+    @Mock
+    private EmailVerificationService emailVerificationService;
+
+    @Mock
+    private TotpServicePort totpServicePort;
+
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private AuthService authService;
 
@@ -74,7 +84,8 @@ class AuthServiceTest {
 
         loginRequest = new LoginRequest(
                 "test@example.com",
-                "password123"
+                "password123",
+                null
         );
     }
 

@@ -1,0 +1,168 @@
+# =================================================
+# Hubz Backend - Production Configuration
+# =================================================
+# This profile is activated when SPRING_PROFILES_ACTIVE=prod
+#
+# All sensitive values should be provided via environment variables.
+# DO NOT hardcode secrets in this file.
+# =================================================
+
+spring:
+  # ========================
+  # Data Source (PostgreSQL)
+  # ========================
+  datasource:
+    # Render provides DATABASE_URL in JDBC format
+    # Format: postgres://user:password@host:port/database
+    # Spring Boot can parse this with the Render-specific format
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/hubz}
+    driver-class-name: org.postgresql.Driver
+    # Connection pool settings
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      pool-name: HubzHikariPool
+
+  # ========================
+  # JPA / Hibernate
+  # ========================
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      # IMPORTANT: Use 'validate' in production
+      # Run migrations manually or use Flyway/Liquibase
+      ddl-auto: update  # Change to 'validate' after initial deployment
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        # Statistics for monitoring (optional)
+        generate_statistics: false
+
+  # ========================
+  # H2 Console (DISABLED)
+  # ========================
+  h2:
+    console:
+      enabled: false
+
+  # ========================
+  # Redis (Optional - for caching)
+  # ========================
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    # Use 'simple' if Redis is not available
+    type: ${CACHE_TYPE:simple}
+
+  # ========================
+  # Mail Configuration
+  # ========================
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+# ========================
+# Server Configuration
+# ========================
+server:
+  port: ${PORT:8085}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 1024
+  servlet:
+    session:
+      timeout: 30m
+
+# ========================
+# JWT Configuration
+# ========================
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000  # 24 hours
+
+# ========================
+# Application Configuration
+# ========================
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://hubz.vercel.app}
+  mail:
+    from: ${MAIL_FROM:noreply@hubz.com}
+  frontend-url: ${FRONTEND_URL:https://hubz.vercel.app}
+  email-verification:
+    required: ${EMAIL_VERIFICATION_REQUIRED:false}
+  oauth2:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+      redirect-uri: ${GOOGLE_REDIRECT_URI:https://hubz-backend.onrender.com/api/auth/oauth2/google/callback}
+
+# ========================
+# File Upload
+# ========================
+file:
+  upload-dir: ${FILE_UPLOAD_DIR:uploads}
+
+# ========================
+# Logging Configuration
+# ========================
+logging:
+  level:
+    root: INFO
+    com.hubz: INFO
+    org.springframework: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  file:
+    name: ${LOG_FILE:/var/log/hubz/hubz-backend.log}
+
+# ========================
+# Actuator / Monitoring
+# ========================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+  health:
+    db:
+      enabled: true
+
+# ========================
+# Swagger / OpenAPI (Disabled in Production)
+# ========================
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
