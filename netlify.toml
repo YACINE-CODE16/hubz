@@ -4,7 +4,7 @@
 
 [build]
   # Build command
-  command = "cd hubz-frontend && npm install && npm run build:deploy"
+  command = "cd hubz-frontend && npm install --legacy-peer-deps && npm run build:deploy"
 
   # Output directory (relative to root)
   publish = "hubz-frontend/dist"
