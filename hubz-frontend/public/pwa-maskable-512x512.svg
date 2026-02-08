@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Maskable icon with safe zone (inner 80% area) -->
+  <rect width="512" height="512" fill="#3B82F6"/>
+  <circle cx="256" cy="200" r="72" fill="white"/>
+  <text x="256" y="226" text-anchor="middle" fill="#3B82F6" font-family="Inter, system-ui, sans-serif" font-size="84" font-weight="700">H</text>
+  <rect x="144" y="304" width="224" height="24" rx="12" fill="white"/>
+  <rect x="176" y="348" width="160" height="20" rx="10" fill="white" fill-opacity="0.8"/>
+</svg>

@@ -5,6 +5,8 @@ import com.hubz.application.dto.request.RegisterRequest;
 import com.hubz.application.dto.response.AuthResponse;
 import com.hubz.application.dto.response.UserResponse;
 import com.hubz.application.service.AuthService;
+import com.hubz.application.service.EmailVerificationService;
+import com.hubz.application.service.PasswordResetService;
 import com.hubz.domain.exception.InvalidCredentialsException;
 import com.hubz.domain.exception.UserAlreadyExistsException;
 import com.hubz.domain.exception.UserNotFoundException;
@@ -57,6 +59,12 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private PasswordResetService passwordResetService;
+
+    @MockBean
+    private EmailVerificationService emailVerificationService;
 
     private UserResponse createUserResponse() {
         return UserResponse.builder()

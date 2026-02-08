@@ -2,6 +2,8 @@ package com.hubz.infrastructure.persistence.repository;
 
 import com.hubz.infrastructure.persistence.entity.HabitLogEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -18,4 +20,8 @@ public interface HabitLogJpaRepository extends JpaRepository<HabitLogEntity, UUI
     // Analytics methods
     List<HabitLogEntity> findByHabitIdInAndDateBetween(List<UUID> habitIds, LocalDate startDate, LocalDate endDate);
     List<HabitLogEntity> findByHabitIdIn(List<UUID> habitIds);
+
+    // Activity Heatmap methods
+    @Query("SELECT hl.date, COUNT(hl) FROM HabitLogEntity hl WHERE hl.habitId IN :habitIds AND hl.completed = true AND hl.date >= :startDate AND hl.date <= :endDate GROUP BY hl.date")
+    List<Object[]> getDailyCompletionsByHabitIds(@Param("habitIds") List<UUID> habitIds, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

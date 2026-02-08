@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { Trash2, Calendar, AlertTriangle, Target } from 'lucide-react';
 import type { Task, TaskStatus, TaskPriority } from '../../types/task';
 import type { Goal } from '../../types/goal';
+import type { Tag } from '../../types/tag';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import TaskComments from './TaskComments';
+import TaskChecklist from './TaskChecklist';
+import TaskAttachments from './TaskAttachments';
+import TaskHistoryTimeline from './TaskHistoryTimeline';
+import TagSelector from './TagSelector';
 import { cn } from '../../lib/utils';
 
 const statusOptions: { value: TaskStatus; label: string; accent: string }[] = [
@@ -29,6 +34,9 @@ interface TaskDetailModalProps {
   onStatusChange: (id: string, status: TaskStatus) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   goals: Goal[];
+  availableTags?: Tag[];
+  onTagsChange?: (taskId: string, tags: Tag[]) => Promise<void>;
+  onCreateTag?: (name: string, color: string) => Promise<Tag>;
 }
 
 export default function TaskDetailModal({
@@ -39,6 +47,9 @@ export default function TaskDetailModal({
   onStatusChange,
   onDelete,
   goals,
+  availableTags = [],
+  onTagsChange,
+  onCreateTag,
 }: TaskDetailModalProps) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
@@ -90,8 +101,8 @@ export default function TaskDetailModal({
     });
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={editing ? 'Modifier la tache' : undefined} className="max-w-lg">
-      <div className="flex flex-col gap-5">
+    <Modal isOpen={isOpen} onClose={onClose} title={editing ? 'Modifier la tache' : undefined} className="sm:max-w-lg">
+      <div className="flex flex-col gap-4 sm:gap-5">
         {/* Error message */}
         {error && (
           <div className="rounded-lg bg-error/10 border border-error/20 px-4 py-3 text-sm text-error">
@@ -120,13 +131,13 @@ export default function TaskDetailModal({
           <label className="mb-2 block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Statut
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {statusOptions.map((s) => (
               <button
                 key={s.value}
                 onClick={() => onStatusChange(task.id, s.value)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+                  'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors sm:flex-none sm:py-1.5',
                   task.status === s.value
                     ? 'bg-accent/10 text-accent ring-1 ring-accent/30'
                     : 'bg-light-hover dark:bg-dark-hover text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10',
@@ -191,6 +202,21 @@ export default function TaskDetailModal({
           </div>
         </div>
 
+        {/* Tags */}
+        {(availableTags.length > 0 || onCreateTag) && (
+          <div>
+            <label className="mb-2 block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Tags
+            </label>
+            <TagSelector
+              availableTags={availableTags}
+              selectedTags={task.tags || []}
+              onTagsChange={(tags) => onTagsChange?.(task.id, tags)}
+              onCreateTag={onCreateTag}
+            />
+          </div>
+        )}
+
         {/* Goal */}
         {goals.length > 0 && (
           <div>
@@ -244,23 +270,32 @@ export default function TaskDetailModal({
           Creee le {formatDate(task.createdAt)}
         </p>
 
+        {/* Checklist */}
+        <TaskChecklist taskId={task.id} />
+
+        {/* Attachments */}
+        <TaskAttachments taskId={task.id} />
+
         {/* Comments */}
-        <TaskComments taskId={task.id} />
+        <TaskComments taskId={task.id} organizationId={task.organizationId || ''} />
+
+        {/* History */}
+        <TaskHistoryTimeline taskId={task.id} />
 
         {/* Actions */}
-        <div className="flex gap-2 border-t border-gray-200/50 dark:border-white/10 pt-4">
+        <div className="flex flex-col gap-2 border-t border-gray-200/50 dark:border-white/10 pt-4 sm:flex-row">
           {editing ? (
             <>
               <Button onClick={handleSave} loading={saving} className="flex-1">
                 Enregistrer
               </Button>
-              <Button variant="ghost" onClick={() => { setEditing(false); setTitle(task.title); setDescription(task.description || ''); }}>
+              <Button variant="ghost" onClick={() => { setEditing(false); setTitle(task.title); setDescription(task.description || ''); }} className="w-full sm:w-auto">
                 Annuler
               </Button>
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+              <Button variant="ghost" size="sm" onClick={() => setEditing(true)} className="w-full sm:w-auto">
                 Modifier
               </Button>
               <Button
@@ -268,7 +303,7 @@ export default function TaskDetailModal({
                 size="sm"
                 loading={deleting}
                 onClick={handleDelete}
-                className="ml-auto text-error hover:bg-error/10"
+                className="w-full text-error hover:bg-error/10 sm:ml-auto sm:w-auto"
               >
                 <Trash2 className="h-4 w-4" />
                 Supprimer

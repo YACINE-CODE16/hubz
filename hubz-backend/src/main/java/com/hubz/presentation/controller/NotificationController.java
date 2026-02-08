@@ -1,10 +1,14 @@
 package com.hubz.presentation.controller;
 
+import com.hubz.application.dto.request.UpdateNotificationPreferencesRequest;
 import com.hubz.application.dto.response.NotificationCountResponse;
+import com.hubz.application.dto.response.NotificationPreferencesResponse;
 import com.hubz.application.dto.response.NotificationResponse;
 import com.hubz.application.port.out.UserRepositoryPort;
+import com.hubz.application.service.NotificationPreferencesService;
 import com.hubz.application.service.NotificationService;
 import com.hubz.domain.exception.UserNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,6 +23,7 @@ import java.util.UUID;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final NotificationPreferencesService preferencesService;
     private final UserRepositoryPort userRepositoryPort;
 
     @GetMapping
@@ -71,6 +76,22 @@ public class NotificationController {
         UUID userId = resolveUserId(authentication);
         notificationService.deleteAllNotifications(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    // Preferences endpoints
+
+    @GetMapping("/preferences")
+    public ResponseEntity<NotificationPreferencesResponse> getPreferences(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(preferencesService.getPreferences(email));
+    }
+
+    @PutMapping("/preferences")
+    public ResponseEntity<NotificationPreferencesResponse> updatePreferences(
+            @Valid @RequestBody UpdateNotificationPreferencesRequest request,
+            Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(preferencesService.updatePreferences(email, request));
     }
 
     private UUID resolveUserId(Authentication authentication) {

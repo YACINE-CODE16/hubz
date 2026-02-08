@@ -32,3 +32,33 @@ export interface Notification {
 export interface NotificationCountResponse {
   unreadCount: number;
 }
+
+export interface NotificationPreferences {
+  id: string;
+  userId: string;
+  emailEnabled: boolean;
+  taskAssigned: boolean;
+  taskCompleted: boolean;
+  taskDueSoon: boolean;
+  mentions: boolean;
+  invitations: boolean;
+  roleChanges: boolean;
+  comments: boolean;
+  goalDeadlines: boolean;
+  eventReminders: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateNotificationPreferencesRequest {
+  emailEnabled: boolean;
+  taskAssigned: boolean;
+  taskCompleted: boolean;
+  taskDueSoon: boolean;
+  mentions: boolean;
+  invitations: boolean;
+  roleChanges: boolean;
+  comments: boolean;
+  goalDeadlines: boolean;
+  eventReminders: boolean;
+}

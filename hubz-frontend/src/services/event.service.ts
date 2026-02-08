@@ -9,11 +9,13 @@ export const eventService = {
   async getByOrganization(
     organizationId: string,
     start?: string,
-    end?: string
+    end?: string,
+    expandRecurring: boolean = true
   ): Promise<Event[]> {
     const params = new URLSearchParams();
     if (start) params.append('start', start);
     if (end) params.append('end', end);
+    params.append('expandRecurring', String(expandRecurring));
 
     const response = await api.get<Event[]>(
       `/organizations/${organizationId}/events${params.toString() ? `?${params.toString()}` : ''}`
@@ -32,10 +34,15 @@ export const eventService = {
     return response.data;
   },
 
-  async getPersonalEvents(start?: string, end?: string): Promise<Event[]> {
+  async getPersonalEvents(
+    start?: string,
+    end?: string,
+    expandRecurring: boolean = true
+  ): Promise<Event[]> {
     const params = new URLSearchParams();
     if (start) params.append('start', start);
     if (end) params.append('end', end);
+    params.append('expandRecurring', String(expandRecurring));
 
     const response = await api.get<Event[]>(
       `/users/me/events${params.toString() ? `?${params.toString()}` : ''}`
@@ -53,7 +60,24 @@ export const eventService = {
     return response.data;
   },
 
-  async delete(id: string): Promise<void> {
-    await api.delete(`/events/${id}`);
+  async delete(id: string, deleteAllOccurrences: boolean = false): Promise<void> {
+    const params = new URLSearchParams();
+    params.append('deleteAllOccurrences', String(deleteAllOccurrences));
+    await api.delete(`/events/${id}?${params.toString()}`);
+  },
+
+  async getOccurrences(
+    eventId: string,
+    start: string,
+    end: string
+  ): Promise<Event[]> {
+    const params = new URLSearchParams();
+    params.append('start', start);
+    params.append('end', end);
+
+    const response = await api.get<Event[]>(
+      `/events/${eventId}/occurrences?${params.toString()}`
+    );
+    return response.data;
   },
 };

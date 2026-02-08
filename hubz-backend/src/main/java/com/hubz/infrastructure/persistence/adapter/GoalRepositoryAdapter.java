@@ -7,6 +7,7 @@ import com.hubz.infrastructure.persistence.repository.GoalJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,6 +53,27 @@ public class GoalRepositoryAdapter implements GoalRepositoryPort {
     @Override
     public List<Goal> searchByTitle(String query, List<UUID> organizationIds, UUID userId) {
         return jpaRepository.searchByTitle(query, organizationIds, userId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Goal> findByDeadline(LocalDate deadline) {
+        return jpaRepository.findByDeadline(deadline).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Goal> findByDeadlineBetween(LocalDate start, LocalDate end) {
+        return jpaRepository.findByDeadlineBetween(start, end).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Goal> findPersonalGoalsByDeadlineBetween(UUID userId, LocalDate start, LocalDate end) {
+        return jpaRepository.findPersonalGoalsByDeadlineBetween(userId, start, end).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

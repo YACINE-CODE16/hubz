@@ -2,15 +2,20 @@ import { useState, useEffect } from 'react';
 import { MessageSquare, Send, Edit2, Trash2, CornerDownRight, X, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { commentService } from '../../services/comment.service';
+import { mentionService } from '../../services/mention.service';
 import type { TaskComment } from '../../types/task';
+import type { MentionableUser } from '../../types/mention';
 import Button from '../ui/Button';
+import MentionInput from '../ui/MentionInput';
+import MentionText from '../ui/MentionText';
 import { cn } from '../../lib/utils';
 
 interface TaskCommentsProps {
   taskId: string;
+  organizationId: string;
 }
 
-export default function TaskComments({ taskId }: TaskCommentsProps) {
+export default function TaskComments({ taskId, organizationId }: TaskCommentsProps) {
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
@@ -19,10 +24,12 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
   const [replyContent, setReplyContent] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [mentionableUsers, setMentionableUsers] = useState<MentionableUser[]>([]);
 
   useEffect(() => {
     loadComments();
-  }, [taskId]);
+    loadMentionableUsers();
+  }, [taskId, organizationId]);
 
   const loadComments = async () => {
     try {
@@ -34,6 +41,16 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
       toast.error('Erreur lors du chargement des commentaires');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMentionableUsers = async () => {
+    try {
+      const users = await mentionService.getMentionableUsers(organizationId);
+      setMentionableUsers(users);
+    } catch (error) {
+      console.error('Failed to load mentionable users:', error);
+      // Don't show error toast for this, it's not critical
     }
   };
 
@@ -197,10 +214,11 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
             {/* Content */}
             {isEditing ? (
               <div className="space-y-2">
-                <textarea
+                <MentionInput
                   value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-dark-card px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  onChange={setEditContent}
+                  mentionableUsers={mentionableUsers}
+                  placeholder="Modifier le commentaire..."
                   rows={2}
                 />
                 <div className="flex gap-2">
@@ -217,9 +235,9 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {comment.content}
-              </p>
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                <MentionText content={comment.content} organizationId={organizationId} />
+              </div>
             )}
 
             {/* Reply button */}
@@ -239,11 +257,11 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
             {/* Reply form */}
             {isReplying && (
               <div className="mt-3 space-y-2">
-                <textarea
+                <MentionInput
                   value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder="Ecrire une reponse..."
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-dark-card px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  onChange={setReplyContent}
+                  mentionableUsers={mentionableUsers}
+                  placeholder="Ecrire une reponse... (tapez @ pour mentionner)"
                   rows={2}
                   autoFocus
                 />
@@ -302,16 +320,23 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
         </h3>
       </div>
 
+      {/* Hint for @mentions */}
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+        Tapez @ pour mentionner un membre de l'organisation
+      </p>
+
       {/* New comment form */}
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="flex gap-2">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Ecrire un commentaire..."
-            className="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-dark-card px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none"
-            rows={2}
-          />
+          <div className="flex-1">
+            <MentionInput
+              value={newComment}
+              onChange={setNewComment}
+              mentionableUsers={mentionableUsers}
+              placeholder="Ecrire un commentaire..."
+              rows={2}
+            />
+          </div>
           <Button
             type="submit"
             size="sm"

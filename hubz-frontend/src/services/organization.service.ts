@@ -51,4 +51,29 @@ export const organizationService = {
   async transferOwnership(organizationId: string, newOwnerId: string): Promise<void> {
     await api.post(`/organizations/${organizationId}/transfer-ownership/${newOwnerId}`);
   },
+
+  async uploadLogo(organizationId: string, file: File): Promise<Organization> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<Organization>(
+      `/organizations/${organizationId}/logo`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
+
+  async deleteLogo(organizationId: string): Promise<Organization> {
+    const response = await api.delete<Organization>(`/organizations/${organizationId}/logo`);
+    return response.data;
+  },
+
+  async getById(organizationId: string): Promise<Organization> {
+    const response = await api.get<Organization>(`/organizations/${organizationId}`);
+    return response.data;
+  },
 };

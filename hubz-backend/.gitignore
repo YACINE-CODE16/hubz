@@ -27,3 +27,15 @@ target/
 
 ### Env ###
 .env
+.env.local
+.env.*.local
+
+### Data ###
+data/
+
+### Uploads ###
+uploads/
+
+### Logs ###
+logs/
+*.log

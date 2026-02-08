@@ -35,11 +35,10 @@ export default function PersonalCalendarPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cet \u00e9v\u00e9nement ?')) return;
+  const handleDelete = async (id: string, deleteAllOccurrences?: boolean) => {
     try {
-      await eventService.delete(id);
-      toast.success('\u00c9v\u00e9nement supprim\u00e9');
+      await eventService.delete(id, deleteAllOccurrences);
+      toast.success('Evenement supprime');
       await fetchEvents();
     } catch (error) {
       toast.error('Erreur lors de la suppression');

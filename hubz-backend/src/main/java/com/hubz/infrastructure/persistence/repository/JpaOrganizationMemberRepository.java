@@ -18,4 +18,6 @@ public interface JpaOrganizationMemberRepository extends JpaRepository<Organizat
     void deleteByOrganizationIdAndUserId(UUID organizationId, UUID userId);
 
     List<OrganizationMemberEntity> findByUserId(UUID userId);
+
+    void deleteAllByUserId(UUID userId);
 }

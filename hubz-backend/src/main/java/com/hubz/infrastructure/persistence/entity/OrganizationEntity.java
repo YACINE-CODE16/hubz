@@ -38,6 +38,8 @@ public class OrganizationEntity {
     @Column(columnDefinition = "TEXT")
     private String readme;
 
+    private String logoUrl;
+
     @Column(nullable = false)
     private UUID ownerId;
 

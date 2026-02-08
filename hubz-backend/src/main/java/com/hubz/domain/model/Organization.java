@@ -22,6 +22,7 @@ public class Organization {
     private String icon;
     private String color;
     private String readme;
+    private String logoUrl;
     private UUID ownerId;
     private LocalDateTime createdAt;
 }

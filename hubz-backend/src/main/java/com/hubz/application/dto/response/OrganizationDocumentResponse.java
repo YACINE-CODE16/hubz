@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -21,4 +23,8 @@ public class OrganizationDocumentResponse {
     private String contentType;
     private UUID uploadedBy;
     private LocalDateTime uploadedAt;
+    @Builder.Default
+    private List<TagResponse> tags = new ArrayList<>();
+    private Integer currentVersionNumber;
+    private Integer totalVersions;
 }

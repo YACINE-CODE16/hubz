@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Vercel
+.vercel
+
+# Environment files (production secrets)
+.env.production.local
+.env.local
+
+# Playwright
+test-results/
+playwright-report/
+tests/e2e/.auth/
+
+# Coverage
+coverage/

@@ -15,4 +15,11 @@ public class AuthResponse {
 
     private String token;
     private UserResponse user;
+
+    /**
+     * Indicates that 2FA is required to complete login.
+     * When true, the client should prompt for TOTP code and retry login.
+     */
+    @Builder.Default
+    private boolean requires2FA = false;
 }

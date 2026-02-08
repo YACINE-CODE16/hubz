@@ -3,7 +3,9 @@ package com.hubz.application.service;
 import com.hubz.application.dto.request.CreateNoteRequest;
 import com.hubz.application.dto.request.UpdateNoteRequest;
 import com.hubz.application.dto.response.NoteResponse;
+import com.hubz.application.port.out.NoteFolderRepositoryPort;
 import com.hubz.application.port.out.NoteRepositoryPort;
+import com.hubz.application.port.out.NoteTagRepositoryPort;
 import com.hubz.domain.exception.NoteNotFoundException;
 import com.hubz.domain.model.Note;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,15 @@ class NoteServiceTest {
 
     @Mock
     private NoteRepositoryPort noteRepository;
+
+    @Mock
+    private NoteTagRepositoryPort noteTagRepository;
+
+    @Mock
+    private NoteFolderRepositoryPort noteFolderRepository;
+
+    @Mock
+    private NoteVersionService noteVersionService;
 
     @Mock
     private AuthorizationService authorizationService;
@@ -399,6 +410,147 @@ class NoteServiceTest {
             assertThat(response.getCreatedById()).isEqualTo(testNote.getCreatedById());
             assertThat(response.getCreatedAt()).isEqualTo(testNote.getCreatedAt());
             assertThat(response.getUpdatedAt()).isEqualTo(testNote.getUpdatedAt());
+        }
+    }
+
+    @Nested
+    @DisplayName("Search Notes Tests")
+    class SearchNotesTests {
+
+        @Test
+        @DisplayName("Should search notes by title")
+        void shouldSearchNotesByTitle() {
+            // Given
+            String query = "Test";
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(noteRepository.searchByTitleOrContent(query, List.of(organizationId)))
+                    .thenReturn(List.of(testNote));
+
+            // When
+            List<NoteResponse> notes = noteService.searchNotes(organizationId, query, userId);
+
+            // Then
+            assertThat(notes).hasSize(1);
+            assertThat(notes.get(0).getTitle()).isEqualTo(testNote.getTitle());
+            verify(authorizationService).checkOrganizationAccess(organizationId, userId);
+            verify(noteRepository).searchByTitleOrContent(query, List.of(organizationId));
+        }
+
+        @Test
+        @DisplayName("Should search notes by content")
+        void shouldSearchNotesByContent() {
+            // Given
+            String query = "content";
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(noteRepository.searchByTitleOrContent(query, List.of(organizationId)))
+                    .thenReturn(List.of(testNote));
+
+            // When
+            List<NoteResponse> notes = noteService.searchNotes(organizationId, query, userId);
+
+            // Then
+            assertThat(notes).hasSize(1);
+            verify(noteRepository).searchByTitleOrContent(query, List.of(organizationId));
+        }
+
+        @Test
+        @DisplayName("Should return all notes when query is empty")
+        void shouldReturnAllNotesWhenQueryEmpty() {
+            // Given
+            String query = "";
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(noteRepository.findByOrganizationId(organizationId))
+                    .thenReturn(List.of(testNote));
+
+            // When
+            List<NoteResponse> notes = noteService.searchNotes(organizationId, query, userId);
+
+            // Then
+            assertThat(notes).hasSize(1);
+            verify(noteRepository).findByOrganizationId(organizationId);
+            verify(noteRepository, never()).searchByTitleOrContent(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return all notes when query is null")
+        void shouldReturnAllNotesWhenQueryNull() {
+            // Given
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(noteRepository.findByOrganizationId(organizationId))
+                    .thenReturn(List.of(testNote));
+
+            // When
+            List<NoteResponse> notes = noteService.searchNotes(organizationId, null, userId);
+
+            // Then
+            assertThat(notes).hasSize(1);
+            verify(noteRepository).findByOrganizationId(organizationId);
+            verify(noteRepository, never()).searchByTitleOrContent(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return all notes when query is whitespace only")
+        void shouldReturnAllNotesWhenQueryWhitespace() {
+            // Given
+            String query = "   ";
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(noteRepository.findByOrganizationId(organizationId))
+                    .thenReturn(List.of(testNote));
+
+            // When
+            List<NoteResponse> notes = noteService.searchNotes(organizationId, query, userId);
+
+            // Then
+            assertThat(notes).hasSize(1);
+            verify(noteRepository).findByOrganizationId(organizationId);
+            verify(noteRepository, never()).searchByTitleOrContent(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no notes match search")
+        void shouldReturnEmptyListWhenNoMatch() {
+            // Given
+            String query = "nonexistent";
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(noteRepository.searchByTitleOrContent(query, List.of(organizationId)))
+                    .thenReturn(List.of());
+
+            // When
+            List<NoteResponse> notes = noteService.searchNotes(organizationId, query, userId);
+
+            // Then
+            assertThat(notes).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user has no access to search")
+        void shouldThrowExceptionWhenNoAccessToSearch() {
+            // Given
+            String query = "test";
+            doThrow(new RuntimeException("No access"))
+                    .when(authorizationService).checkOrganizationAccess(organizationId, userId);
+
+            // When & Then
+            assertThatThrownBy(() -> noteService.searchNotes(organizationId, query, userId))
+                    .isInstanceOf(RuntimeException.class);
+            verify(noteRepository, never()).searchByTitleOrContent(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should trim query before searching")
+        void shouldTrimQueryBeforeSearching() {
+            // Given
+            String query = "  Test  ";
+            doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
+            when(noteRepository.searchByTitleOrContent("Test", List.of(organizationId)))
+                    .thenReturn(List.of(testNote));
+
+            // When
+            List<NoteResponse> notes = noteService.searchNotes(organizationId, query, userId);
+
+            // Then
+            assertThat(notes).hasSize(1);
+            verify(noteRepository).searchByTitleOrContent("Test", List.of(organizationId));
         }
     }
 

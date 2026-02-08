@@ -8,6 +8,7 @@ import com.hubz.application.port.out.OrganizationMemberRepositoryPort;
 import com.hubz.application.port.out.OrganizationRepositoryPort;
 import com.hubz.application.port.out.UserRepositoryPort;
 import com.hubz.domain.enums.MemberRole;
+import com.hubz.domain.enums.WebhookEventType;
 import com.hubz.domain.exception.CannotChangeOwnerRoleException;
 import com.hubz.domain.exception.MemberAlreadyExistsException;
 import com.hubz.domain.exception.MemberNotFoundException;
@@ -17,11 +18,16 @@ import com.hubz.domain.model.Organization;
 import com.hubz.domain.model.OrganizationMember;
 import com.hubz.domain.model.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -32,6 +38,8 @@ public class OrganizationService {
     private final OrganizationMemberRepositoryPort memberRepository;
     private final UserRepositoryPort userRepository;
     private final AuthorizationService authorizationService;
+    private final FileStorageService fileStorageService;
+    private final WebhookService webhookService;
 
     @Transactional
     public OrganizationResponse create(CreateOrganizationRequest request, UUID ownerId) {
@@ -65,12 +73,14 @@ public class OrganizationService {
                 .toList();
     }
 
+    @Cacheable(value = "organizations", key = "#id")
     public OrganizationResponse getById(UUID id) {
         return organizationRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new OrganizationNotFoundException(id));
     }
 
+    @CacheEvict(value = "organizations", key = "#id")
     public OrganizationResponse update(UUID id, UpdateOrganizationRequest request, UUID currentUserId) {
         authorizationService.checkOrganizationAdminAccess(id, currentUserId);
 
@@ -129,6 +139,15 @@ public class OrganizationService {
 
         memberRepository.save(member);
 
+        // Send webhook event for member joining
+        webhookService.handleWebhookEvent(organizationId, WebhookEventType.MEMBER_JOINED, Map.of(
+                "userId", userId.toString(),
+                "email", user.getEmail(),
+                "firstName", user.getFirstName(),
+                "lastName", user.getLastName(),
+                "role", role.name()
+        ));
+
         return MemberResponse.builder()
                 .id(member.getId())
                 .userId(user.getId())
@@ -171,6 +190,57 @@ public class OrganizationService {
         return toMemberResponse(updated);
     }
 
+    /**
+     * Upload or update logo for an organization.
+     *
+     * @param organizationId the organization's ID
+     * @param file the logo file
+     * @param currentUserId the current user's ID
+     * @return the updated organization response
+     */
+    public OrganizationResponse uploadLogo(UUID organizationId, MultipartFile file, UUID currentUserId) {
+        authorizationService.checkOrganizationAdminAccess(organizationId, currentUserId);
+
+        Organization org = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new OrganizationNotFoundException(organizationId));
+
+        try {
+            String logoPath = fileStorageService.storeOrganizationLogo(file, organizationId);
+            org.setLogoUrl(logoPath);
+
+            Organization updatedOrg = organizationRepository.save(org);
+            return toResponse(updatedOrg);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store organization logo", e);
+        }
+    }
+
+    /**
+     * Delete the logo for an organization.
+     *
+     * @param organizationId the organization's ID
+     * @param currentUserId the current user's ID
+     * @return the updated organization response
+     */
+    public OrganizationResponse deleteLogo(UUID organizationId, UUID currentUserId) {
+        authorizationService.checkOrganizationAdminAccess(organizationId, currentUserId);
+
+        Organization org = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new OrganizationNotFoundException(organizationId));
+
+        if (org.getLogoUrl() != null) {
+            try {
+                fileStorageService.deleteOrganizationLogo(organizationId);
+            } catch (IOException e) {
+                // Log but don't fail if file deletion fails
+            }
+            org.setLogoUrl(null);
+            org = organizationRepository.save(org);
+        }
+
+        return toResponse(org);
+    }
+
     @Transactional
     public void transferOwnership(UUID organizationId, UUID newOwnerId, UUID currentUserId) {
         // Only the current owner can transfer ownership
@@ -210,6 +280,7 @@ public class OrganizationService {
                 .icon(org.getIcon())
                 .color(org.getColor())
                 .readme(org.getReadme())
+                .logoUrl(org.getLogoUrl())
                 .ownerId(org.getOwnerId())
                 .createdAt(org.getCreatedAt())
                 .build();
@@ -224,6 +295,7 @@ public class OrganizationService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
+                .profilePhotoUrl(user.getProfilePhotoUrl())
                 .role(member.getRole())
                 .joinedAt(member.getJoinedAt())
                 .build();

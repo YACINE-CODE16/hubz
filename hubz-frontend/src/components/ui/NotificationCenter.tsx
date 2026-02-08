@@ -1,37 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Check, CheckCheck, Trash2, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2, X, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { notificationService } from '../../services/notification.service';
 import type { Notification, NotificationType } from '../../types/notification';
 import { cn } from '../../lib/utils';
-
-function getNotificationIcon(type: NotificationType): string {
-  switch (type) {
-    case 'TASK_ASSIGNED':
-    case 'TASK_COMPLETED':
-    case 'TASK_DUE_SOON':
-    case 'TASK_OVERDUE':
-      return 'clipboard';
-    case 'ORGANIZATION_INVITE':
-    case 'ORGANIZATION_ROLE_CHANGED':
-    case 'ORGANIZATION_MEMBER_JOINED':
-    case 'ORGANIZATION_MEMBER_LEFT':
-      return 'users';
-    case 'GOAL_DEADLINE_APPROACHING':
-    case 'GOAL_COMPLETED':
-    case 'GOAL_AT_RISK':
-      return 'target';
-    case 'EVENT_REMINDER':
-    case 'EVENT_UPDATED':
-    case 'EVENT_CANCELLED':
-      return 'calendar';
-    case 'MENTION':
-      return 'at-sign';
-    case 'SYSTEM':
-    default:
-      return 'bell';
-  }
-}
+import NotificationPreferencesModal from '../features/NotificationPreferencesModal';
 
 function getNotificationColor(type: NotificationType): string {
   switch (type) {
@@ -87,6 +60,7 @@ export default function NotificationCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
@@ -208,6 +182,16 @@ export default function NotificationCenter() {
                 </button>
               )}
               <button
+                onClick={() => {
+                  setIsOpen(false);
+                  setShowPreferencesModal(true);
+                }}
+                className="rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Parametres de notification"
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+              <button
                 onClick={() => setIsOpen(false)}
                 className="rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
@@ -292,6 +276,12 @@ export default function NotificationCenter() {
           </div>
         </div>
       )}
+
+      {/* Preferences Modal */}
+      <NotificationPreferencesModal
+        isOpen={showPreferencesModal}
+        onClose={() => setShowPreferencesModal(false)}
+      />
     </div>
   );
 }

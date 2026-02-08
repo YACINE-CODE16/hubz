@@ -42,12 +42,27 @@ public class TaskAnalyticsResponse {
 
     // Burndown/Burnup data
     private List<BurndownData> burndownChart;
+    private List<BurnupData> burnupChart;
 
     // Velocity data (tasks completed per week)
     private List<VelocityData> velocityChart;
 
     // Cumulative Flow Diagram data
     private List<CumulativeFlowData> cumulativeFlowDiagram;
+
+    // Throughput chart data (tasks completed per day with rolling average)
+    private List<ThroughputData> throughputChart;
+
+    // Cycle time distribution (histogram buckets)
+    private List<CycleTimeBucket> cycleTimeDistribution;
+
+    // Lead time trend over time
+    private List<LeadTimeData> leadTimeTrend;
+    private Double averageLeadTimeHours;
+
+    // Work in Progress (WIP) chart
+    private List<WIPData> wipChart;
+    private Double averageWIP;
 
     @Data
     @Builder
@@ -87,5 +102,58 @@ public class TaskAnalyticsResponse {
         private long todo;
         private long inProgress;
         private long done;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BurnupData {
+        private String date;
+        private long cumulativeCompleted; // Total tasks completed up to this date
+        private long totalScope;           // Total tasks in scope (including new tasks added)
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ThroughputData {
+        private String date;
+        private long completedCount;       // Tasks completed on this day
+        private Double rollingAverage;     // 7-day rolling average
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CycleTimeBucket {
+        private String bucket;             // e.g., "<1 day", "1-3 days", "3-7 days", etc.
+        private int minHours;              // Minimum hours for this bucket
+        private int maxHours;              // Maximum hours for this bucket (-1 for unlimited)
+        private long count;                // Number of tasks in this bucket
+        private double percentage;         // Percentage of total completed tasks
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LeadTimeData {
+        private String date;               // Week start date
+        private Double averageLeadTimeHours; // Average lead time for tasks completed that week
+        private long taskCount;            // Number of tasks completed that week
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WIPData {
+        private String date;
+        private long wipCount;             // Number of tasks in IN_PROGRESS status
+        private long todoCount;            // Number of tasks in TODO status
+        private long totalActive;          // Total active tasks (TODO + IN_PROGRESS)
     }
 }

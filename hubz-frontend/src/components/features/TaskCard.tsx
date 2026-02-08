@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { Task, TaskPriority } from '../../types/task';
 import type { Member } from '../../types/organization';
 import Card from '../ui/Card';
+import TagChip from '../ui/TagChip';
 import { cn } from '../../lib/utils';
 
 const priorityConfig: Record<TaskPriority, { label: string; className: string }> = {
@@ -40,7 +41,7 @@ export default function TaskCard({ task, onClick, members }: TaskCardProps) {
       <Card
         onClick={onClick}
         className={cn(
-          'cursor-grab active:cursor-grabbing p-4 transition-all hover:shadow-md',
+          'cursor-grab active:cursor-grabbing p-3 transition-all hover:shadow-md sm:p-4',
           isOverdue && 'border-error/50',
           isDragging && 'opacity-50',
         )}
@@ -49,13 +50,26 @@ export default function TaskCard({ task, onClick, members }: TaskCardProps) {
         {task.title}
       </h4>
 
+      {/* Description: hidden on very small screens to save space */}
       {task.description && (
-        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1 sm:mt-1.5 sm:line-clamp-2">
           {task.description}
         </p>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      {/* Tags: show fewer on mobile */}
+      {task.tags && task.tags.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-2">
+          {task.tags.slice(0, 2).map((tag) => (
+            <TagChip key={tag.id} tag={tag} size="sm" />
+          ))}
+          {task.tags.length > 2 && (
+            <span className="text-xs text-gray-400">+{task.tags.length - 2}</span>
+          )}
+        </div>
+      )}
+
+      <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-3 sm:gap-2">
         {priority && (
           <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', priority.className)}>
             {priority.label}
@@ -77,10 +91,12 @@ export default function TaskCard({ task, onClick, members }: TaskCardProps) {
           </span>
         )}
 
+        {/* Assignee: show initials only on mobile, full name on desktop */}
         {assignee && (
           <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <UserCircle2 className="h-3 w-3" />
-            {assignee.firstName} {assignee.lastName}
+            <span className="sm:hidden">{assignee.firstName?.[0]}{assignee.lastName?.[0]}</span>
+            <span className="hidden sm:inline">{assignee.firstName} {assignee.lastName}</span>
           </span>
         )}
       </div>

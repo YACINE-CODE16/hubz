@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +50,12 @@ class TaskCommentServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private MentionService mentionService;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private TaskCommentService commentService;
@@ -251,6 +258,7 @@ class TaskCommentServiceTest {
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, userId);
             when(commentRepository.save(any(TaskComment.class))).thenReturn(testComment);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+            when(mentionService.parseMentionsAndResolve(any(), any(), any())).thenReturn(Collections.emptySet());
 
             // When
             TaskCommentResponse response = commentService.createComment(taskId, createRequest, userId);
@@ -271,6 +279,7 @@ class TaskCommentServiceTest {
             ArgumentCaptor<TaskComment> commentCaptor = ArgumentCaptor.forClass(TaskComment.class);
             when(commentRepository.save(commentCaptor.capture())).thenReturn(testComment);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+            when(mentionService.parseMentionsAndResolve(any(), any(), any())).thenReturn(Collections.emptySet());
 
             // When
             commentService.createComment(taskId, createRequest, userId);
@@ -304,6 +313,7 @@ class TaskCommentServiceTest {
                     .build();
             when(commentRepository.save(any(TaskComment.class))).thenReturn(reply);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+            when(mentionService.parseMentionsAndResolve(any(), any(), any())).thenReturn(Collections.emptySet());
 
             // When
             TaskCommentResponse response = commentService.createComment(taskId, replyRequest, userId);

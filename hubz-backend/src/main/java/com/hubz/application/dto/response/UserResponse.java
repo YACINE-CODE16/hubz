@@ -21,5 +21,9 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private String description;
+    private String profilePhotoUrl;
+    private Boolean emailVerified;
+    private Boolean twoFactorEnabled;
+    private String oauthProvider;
     private LocalDateTime createdAt;
 }

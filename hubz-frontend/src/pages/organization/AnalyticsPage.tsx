@@ -9,15 +9,21 @@ import {
   Clock,
   CheckCircle2,
   Activity,
+  Timer,
+  UserX,
+  Trophy,
+  Calendar,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { analyticsService } from '../../services/analytics.service';
+import { organizationService } from '../../services/organization.service';
 import type {
   TaskAnalytics,
   MemberAnalytics,
   GoalAnalytics,
   OrganizationAnalytics,
 } from '../../types/analytics';
+import type { Member } from '../../types/organization';
 import Card from '../../components/ui/Card';
 import {
   ChartContainer,
@@ -27,9 +33,17 @@ import {
   StackedAreaChart,
   VelocityChart,
   BurndownChart,
+  BurnupChart,
+  ThroughputChart,
+  CycleTimeHistogram,
+  LeadTimeTrendChart,
+  WIPChart,
   ProgressGauge,
   StatCard,
 } from '../../components/ui/Charts';
+import TreemapCard from '../../components/features/TreemapCard';
+import DashboardFilters from '../../components/features/DashboardFilters';
+import { useAnalyticsFilters } from '../../hooks/useAnalyticsFilters';
 import { cn } from '../../lib/utils';
 
 type TabType = 'overview' | 'tasks' | 'members' | 'goals';
@@ -38,25 +52,34 @@ export default function AnalyticsPage() {
   const { orgId } = useParams<{ orgId: string }>();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<Member[]>([]);
+
+  const { filters, effectiveDateRange, setFilters, resetFilters } = useAnalyticsFilters();
 
   const [orgAnalytics, setOrgAnalytics] = useState<OrganizationAnalytics | null>(null);
   const [taskAnalytics, setTaskAnalytics] = useState<TaskAnalytics | null>(null);
   const [memberAnalytics, setMemberAnalytics] = useState<MemberAnalytics | null>(null);
   const [goalAnalytics, setGoalAnalytics] = useState<GoalAnalytics | null>(null);
 
+  // Fetch members for the filter dropdown
+  useEffect(() => {
+    if (!orgId) return;
+    organizationService.getMembers(orgId).then(setMembers).catch(console.error);
+  }, [orgId]);
+
   const fetchData = useCallback(async () => {
     if (!orgId) return;
     setLoading(true);
     try {
-      const [org, tasks, members, goals] = await Promise.all([
+      const [org, tasks, membersAnalytics, goals] = await Promise.all([
         analyticsService.getOrganizationAnalytics(orgId),
-        analyticsService.getTaskAnalytics(orgId),
-        analyticsService.getMemberAnalytics(orgId),
-        analyticsService.getGoalAnalytics(orgId),
+        analyticsService.getTaskAnalytics(orgId, filters, effectiveDateRange),
+        analyticsService.getMemberAnalytics(orgId, filters, effectiveDateRange),
+        analyticsService.getGoalAnalytics(orgId, filters, effectiveDateRange),
       ]);
       setOrgAnalytics(org);
       setTaskAnalytics(tasks);
-      setMemberAnalytics(members);
+      setMemberAnalytics(membersAnalytics);
       setGoalAnalytics(goals);
     } catch (error) {
       toast.error('Erreur lors du chargement des analytics');
@@ -64,7 +87,7 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, filters, effectiveDateRange]);
 
   useEffect(() => {
     fetchData();
@@ -118,6 +141,14 @@ export default function AnalyticsPage() {
           </button>
         ))}
       </div>
+
+      {/* Dynamic Filters */}
+      <DashboardFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        onReset={resetFilters}
+        members={members}
+      />
 
       {/* Tab Content */}
       {activeTab === 'overview' && orgAnalytics && taskAnalytics && (
@@ -181,7 +212,19 @@ function OverviewTab({
 
       {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <ChartContainer title="Taches completees (30 derniers jours)">
+        <ChartContainer
+          title="Taches completees (30 derniers jours)"
+          fullscreenContent={
+            <SimpleLineChart
+              data={taskAnalytics.tasksCompletedOverTime.map((d) => ({
+                date: d.date.slice(5),
+                value: d.count,
+              }))}
+              color="#22C55E"
+              height={500}
+            />
+          }
+        >
           <SimpleLineChart
             data={taskAnalytics.tasksCompletedOverTime.map((d) => ({
               date: d.date.slice(5),
@@ -191,7 +234,19 @@ function OverviewTab({
           />
         </ChartContainer>
 
-        <ChartContainer title="Taches creees (30 derniers jours)">
+        <ChartContainer
+          title="Taches creees (30 derniers jours)"
+          fullscreenContent={
+            <SimpleLineChart
+              data={taskAnalytics.tasksCreatedOverTime.map((d) => ({
+                date: d.date.slice(5),
+                value: d.count,
+              }))}
+              color="#3B82F6"
+              height={500}
+            />
+          }
+        >
           <SimpleLineChart
             data={taskAnalytics.tasksCreatedOverTime.map((d) => ({
               date: d.date.slice(5),
@@ -204,7 +259,19 @@ function OverviewTab({
 
       {/* Monthly Growth */}
       {orgAnalytics.monthlyGrowth && orgAnalytics.monthlyGrowth.length > 0 && (
-        <ChartContainer title="Croissance mensuelle">
+        <ChartContainer
+          title="Croissance mensuelle"
+          fullscreenContent={
+            <SimpleBarChart
+              data={orgAnalytics.monthlyGrowth.map((m) => ({
+                name: m.month,
+                value: m.tasksCompleted,
+              }))}
+              color="#3B82F6"
+              height={500}
+            />
+          }
+        >
           <SimpleBarChart
             data={orgAnalytics.monthlyGrowth.map((m) => ({
               name: m.month,
@@ -238,9 +305,17 @@ function TasksTab({ taskAnalytics }: { taskAnalytics: TaskAnalytics }) {
     done: d.done,
   }));
 
+  // Format lead time for display
+  const formatLeadTime = (hours: number | null) => {
+    if (hours === null) return 'N/A';
+    if (hours < 24) return `${hours.toFixed(0)}h`;
+    const days = hours / 24;
+    return `${days.toFixed(1)}j`;
+  };
+
   return (
     <div className="space-y-6">
-      {/* Key Metrics */}
+      {/* Key Metrics Row 1 */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total des taches"
@@ -274,7 +349,39 @@ function TasksTab({ taskAnalytics }: { taskAnalytics: TaskAnalytics }) {
         />
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Key Metrics Row 2 - Advanced metrics */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Lead time moyen"
+          value={formatLeadTime(taskAnalytics.averageLeadTimeHours)}
+          subtitle="de creation a completion"
+          icon={<Clock className="h-6 w-6" />}
+          color="purple"
+        />
+        <StatCard
+          title="WIP moyen"
+          value={taskAnalytics.averageWIP?.toFixed(1) || '0'}
+          subtitle="taches en cours"
+          icon={<Activity className="h-6 w-6" />}
+          color="blue"
+        />
+        <StatCard
+          title="Temps en TODO"
+          value={formatLeadTime(taskAnalytics.averageTimeInTodoHours)}
+          subtitle="temps moyen d'attente"
+          icon={<Clock className="h-6 w-6" />}
+          color="gray"
+        />
+        <StatCard
+          title="Temps en cours"
+          value={formatLeadTime(taskAnalytics.averageTimeInProgressHours)}
+          subtitle="temps moyen de travail"
+          icon={<Clock className="h-6 w-6" />}
+          color="blue"
+        />
+      </div>
+
+      {/* Charts Row 1 - Distribution */}
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartContainer title="Repartition par statut">
           <SimplePieChart data={statusData} innerRadius={40} />
@@ -285,26 +392,86 @@ function TasksTab({ taskAnalytics }: { taskAnalytics: TaskAnalytics }) {
         </ChartContainer>
       </div>
 
+      {/* Throughput Chart */}
+      <ChartContainer
+        title="Throughput (taches completees par jour)"
+        subtitle="Avec moyenne mobile sur 7 jours"
+        fullscreenContent={<ThroughputChart data={taskAnalytics.throughputChart || []} height={500} />}
+      >
+        <ThroughputChart data={taskAnalytics.throughputChart || []} />
+      </ChartContainer>
+
       {/* Velocity Chart */}
       <ChartContainer
         title="Velocite (taches completees par semaine)"
         subtitle="Performance sur les 12 dernieres semaines"
+        fullscreenContent={<VelocityChart data={taskAnalytics.velocityChart} height={500} />}
       >
         <VelocityChart data={taskAnalytics.velocityChart} />
       </ChartContainer>
 
-      {/* Burndown Chart */}
+      {/* Burndown and Burnup Charts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartContainer
+          title="Burndown Chart"
+          subtitle="Taches restantes vs progression ideale"
+          fullscreenContent={<BurndownChart data={taskAnalytics.burndownChart} height={500} />}
+        >
+          <BurndownChart data={taskAnalytics.burndownChart} />
+        </ChartContainer>
+
+        <ChartContainer
+          title="Burnup Chart"
+          subtitle="Taches completees vs scope total"
+          fullscreenContent={<BurnupChart data={taskAnalytics.burnupChart || []} height={500} />}
+        >
+          <BurnupChart data={taskAnalytics.burnupChart || []} />
+        </ChartContainer>
+      </div>
+
+      {/* Cycle Time and Lead Time */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartContainer
+          title="Distribution du cycle time"
+          subtitle="Temps de completion des taches"
+          fullscreenContent={<CycleTimeHistogram data={taskAnalytics.cycleTimeDistribution || []} height={500} />}
+        >
+          <CycleTimeHistogram data={taskAnalytics.cycleTimeDistribution || []} />
+        </ChartContainer>
+
+        <ChartContainer
+          title="Tendance du lead time"
+          subtitle="Evolution du temps moyen de completion par semaine"
+          fullscreenContent={<LeadTimeTrendChart data={taskAnalytics.leadTimeTrend || []} height={500} />}
+        >
+          <LeadTimeTrendChart data={taskAnalytics.leadTimeTrend || []} />
+        </ChartContainer>
+      </div>
+
+      {/* WIP Chart */}
       <ChartContainer
-        title="Burndown Chart"
-        subtitle="Taches restantes vs progression ideale"
+        title="Work in Progress (WIP)"
+        subtitle="Nombre de taches actives dans le temps"
+        fullscreenContent={<WIPChart data={taskAnalytics.wipChart || []} height={500} />}
       >
-        <BurndownChart data={taskAnalytics.burndownChart} />
+        <WIPChart data={taskAnalytics.wipChart || []} />
       </ChartContainer>
 
       {/* Cumulative Flow Diagram */}
       <ChartContainer
         title="Cumulative Flow Diagram"
         subtitle="Evolution des taches par statut dans le temps"
+        fullscreenContent={
+          <StackedAreaChart
+            data={cfdData}
+            areas={[
+              { key: 'done', color: '#22C55E', name: 'Termine' },
+              { key: 'inProgress', color: '#3B82F6', name: 'En cours' },
+              { key: 'todo', color: '#9CA3AF', name: 'A faire' },
+            ]}
+            height={500}
+          />
+        }
       >
         <StackedAreaChart
           data={cfdData}
@@ -385,6 +552,9 @@ function MembersTab({ memberAnalytics }: { memberAnalytics: MemberAnalytics }) {
           <SimpleBarChart data={workloadData} color="#3B82F6" horizontal />
         </ChartContainer>
       </div>
+
+      {/* Treemap - Task Distribution by Member */}
+      <TreemapCard memberAnalytics={memberAnalytics} />
 
       {/* Overloaded Members Warning */}
       {memberAnalytics.overloadedMembers.length > 0 && (
@@ -478,6 +648,283 @@ function MembersTab({ memberAnalytics }: { memberAnalytics: MemberAnalytics }) {
           </table>
         </div>
       </ChartContainer>
+
+      {/* Average Completion Time per Member */}
+      {memberAnalytics.memberCompletionTimes && memberAnalytics.memberCompletionTimes.length > 0 && (
+        <ChartContainer
+          title="Temps moyen de completion par membre"
+          subtitle="Classe du plus rapide au plus lent"
+        >
+          <div className="space-y-3">
+            {memberAnalytics.memberCompletionTimes.map((member) => {
+              const validTimes = memberAnalytics.memberCompletionTimes
+                .filter((m) => m.averageCompletionTimeHours !== null)
+                .map((m) => m.averageCompletionTimeHours!);
+              const maxTime = validTimes.length > 0 ? Math.max(...validTimes) : 1;
+              const barWidth =
+                member.averageCompletionTimeHours !== null
+                  ? (member.averageCompletionTimeHours / maxTime) * 100
+                  : 0;
+
+              const formatTime = (hours: number | null) => {
+                if (hours === null) return 'N/A';
+                if (hours < 24) return `${hours.toFixed(1)}h`;
+                const days = hours / 24;
+                return `${days.toFixed(1)}j`;
+              };
+
+              return (
+                <div
+                  key={member.memberId}
+                  className="flex items-center gap-4 rounded-lg border border-gray-200/50 p-3 dark:border-white/10"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">
+                    {member.rank}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {member.memberName}
+                      </p>
+                      <div className="ml-2 flex items-center gap-2 text-right">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          {formatTime(member.averageCompletionTimeHours)}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          ({member.tasksCompleted} taches)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div
+                        className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                        style={{ width: `${barWidth}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </ChartContainer>
+      )}
+
+      {/* Inactive Members Warning */}
+      {memberAnalytics.inactiveMembers && memberAnalytics.inactiveMembers.length > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50 p-6 dark:border-yellow-900/40 dark:bg-yellow-900/20">
+          <div className="flex items-start gap-4">
+            <UserX className="h-6 w-6 shrink-0 text-yellow-600 dark:text-yellow-400" />
+            <div className="flex-1">
+              <h4 className="font-semibold text-yellow-800 dark:text-yellow-400">
+                Membres inactifs ({memberAnalytics.inactiveMembers.length})
+              </h4>
+              <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                Les membres suivants n&apos;ont eu aucune activite depuis plus de 14 jours :
+              </p>
+              <div className="mt-3 space-y-2">
+                {memberAnalytics.inactiveMembers.map((member) => (
+                  <div
+                    key={member.memberId}
+                    className="flex items-center justify-between rounded-lg bg-yellow-100/60 px-3 py-2 dark:bg-yellow-900/30"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                        {member.memberName}
+                      </p>
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                        {member.memberEmail}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
+                        {member.inactiveDays} jours
+                      </p>
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                        {member.lastActivityDate
+                          ? `Derniere activite : ${member.lastActivityDate}`
+                          : 'Aucune activite'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Team Performance Comparison */}
+      {memberAnalytics.teamPerformanceComparison && memberAnalytics.teamPerformanceComparison.length > 0 && (
+        <ChartContainer
+          title="Comparaison de performance entre equipes"
+          subtitle="Metriques de performance par equipe"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="pb-3 text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Equipe
+                  </th>
+                  <th className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Membres
+                  </th>
+                  <th className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Taches completees
+                  </th>
+                  <th className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Moy. / membre
+                  </th>
+                  <th className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Temps moyen
+                  </th>
+                  <th className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Velocite
+                  </th>
+                  <th className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Completion
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {memberAnalytics.teamPerformanceComparison.map((team, index) => (
+                  <tr
+                    key={team.teamId}
+                    className="border-b border-gray-100 dark:border-gray-800"
+                  >
+                    <td className="py-3">
+                      <div className="flex items-center gap-2">
+                        {index === 0 && (
+                          <Trophy className="h-4 w-4 text-yellow-500" />
+                        )}
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {team.teamName}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="py-3 text-center text-gray-600 dark:text-gray-400">
+                      {team.memberCount}
+                    </td>
+                    <td className="py-3 text-center font-semibold text-gray-900 dark:text-gray-100">
+                      {team.totalTasksCompleted}
+                    </td>
+                    <td className="py-3 text-center text-gray-600 dark:text-gray-400">
+                      {team.avgTasksCompletedPerMember.toFixed(1)}
+                    </td>
+                    <td className="py-3 text-center text-gray-600 dark:text-gray-400">
+                      {team.avgCompletionTimeHours !== null
+                        ? team.avgCompletionTimeHours < 24
+                          ? `${team.avgCompletionTimeHours.toFixed(1)}h`
+                          : `${(team.avgCompletionTimeHours / 24).toFixed(1)}j`
+                        : 'N/A'}
+                    </td>
+                    <td className="py-3 text-center">
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                        {team.teamVelocity.toFixed(1)}/sem
+                      </span>
+                    </td>
+                    <td className="py-3 text-center">
+                      <span
+                        className={cn(
+                          'rounded-full px-2 py-0.5 text-xs font-semibold',
+                          team.completionRate >= 80
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                            : team.completionRate >= 50
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400'
+                              : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+                        )}
+                      >
+                        {team.completionRate.toFixed(0)}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ChartContainer>
+      )}
+
+      {/* Member Workload Heatmap */}
+      {memberAnalytics.memberWorkloadHeatmap && memberAnalytics.memberWorkloadHeatmap.length > 0 && (
+        <ChartContainer
+          title="Repartition de la charge par jour de la semaine"
+          subtitle="Nombre de taches par membre et par jour"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="pb-3 text-left text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Membre
+                  </th>
+                  {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
+                    <th
+                      key={day}
+                      className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400"
+                    >
+                      {day}
+                    </th>
+                  ))}
+                  <th className="pb-3 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {memberAnalytics.memberWorkloadHeatmap.map((entry) => {
+                  const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+                  const total = days.reduce(
+                    (sum, day) => sum + (entry.tasksByDayOfWeek[day] || 0),
+                    0,
+                  );
+                  const maxCount = Math.max(
+                    ...Object.values(entry.tasksByDayOfWeek),
+                    1,
+                  );
+
+                  return (
+                    <tr
+                      key={entry.memberId}
+                      className="border-b border-gray-100 dark:border-gray-800"
+                    >
+                      <td className="py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {entry.memberName}
+                      </td>
+                      {days.map((day) => {
+                        const count = entry.tasksByDayOfWeek[day] || 0;
+                        const intensity = maxCount > 0 ? count / maxCount : 0;
+                        return (
+                          <td key={day} className="py-3 text-center">
+                            <div
+                              className={cn(
+                                'mx-auto flex h-8 w-8 items-center justify-center rounded-md text-xs font-semibold',
+                                intensity === 0
+                                  ? 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
+                                  : intensity < 0.33
+                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
+                                    : intensity < 0.66
+                                      ? 'bg-blue-200 text-blue-800 dark:bg-blue-800/50 dark:text-blue-300'
+                                      : 'bg-blue-400 text-white dark:bg-blue-600 dark:text-white',
+                              )}
+                              title={`${count} tache(s)`}
+                            >
+                              {count}
+                            </div>
+                          </td>
+                        );
+                      })}
+                      <td className="py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {total}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </ChartContainer>
+      )}
     </div>
   );
 }

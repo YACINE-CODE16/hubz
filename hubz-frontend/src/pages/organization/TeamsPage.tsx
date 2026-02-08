@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Users, Plus, Edit2, Trash2, UserPlus, UserMinus } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, UserPlus, UserMinus, MessageSquare } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -10,6 +10,7 @@ import { teamService } from '../../services/team.service';
 import { organizationService } from '../../services/organization.service';
 import type { Team, TeamMember, CreateTeamRequest, UpdateTeamRequest } from '../../types/team';
 import type { Member } from '../../types/organization';
+import TeamChatPanel from '../../components/features/TeamChatPanel';
 
 export default function TeamsPage() {
   const { orgId } = useParams<{ orgId: string }>();
@@ -19,6 +20,7 @@ export default function TeamsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [chatTeam, setChatTeam] = useState<Team | null>(null);
 
   useEffect(() => {
     fetchTeams();
@@ -128,6 +130,7 @@ export default function TeamsPage() {
                 setSelectedTeam(team);
                 setIsMembersModalOpen(true);
               }}
+              onOpenChat={(team) => setChatTeam(team)}
               onDelete={handleDelete}
             />
           ))}
@@ -167,6 +170,17 @@ export default function TeamsPage() {
           onUpdate={fetchTeams}
         />
       )}
+
+      {/* Chat Panel */}
+      {chatTeam && (
+        <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md shadow-2xl">
+          <TeamChatPanel
+            teamId={chatTeam.id}
+            teamName={chatTeam.name}
+            onClose={() => setChatTeam(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -175,10 +189,11 @@ interface TeamCardProps {
   team: Team;
   onEdit: (team: Team) => void;
   onManageMembers: (team: Team) => void;
+  onOpenChat: (team: Team) => void;
   onDelete: (id: string) => void;
 }
 
-function TeamCard({ team, onEdit, onManageMembers, onDelete }: TeamCardProps) {
+function TeamCard({ team, onEdit, onManageMembers, onOpenChat, onDelete }: TeamCardProps) {
   return (
     <Card className="flex flex-col gap-3">
       {/* Header */}
@@ -192,6 +207,13 @@ function TeamCard({ team, onEdit, onManageMembers, onDelete }: TeamCardProps) {
           )}
         </div>
         <div className="flex gap-1">
+          <button
+            onClick={() => onOpenChat(team)}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-accent/10 hover:text-accent dark:hover:bg-accent/10 dark:hover:text-accent"
+            title="Chat d'equipe"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </button>
           <button
             onClick={() => onEdit(team)}
             className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
@@ -215,13 +237,22 @@ function TeamCard({ team, onEdit, onManageMembers, onDelete }: TeamCardProps) {
           <Users className="h-4 w-4" />
           <span>{team.memberCount} membre{team.memberCount !== 1 ? 's' : ''}</span>
         </div>
-        <button
-          onClick={() => onManageMembers(team)}
-          className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-accent hover:bg-accent/10"
-        >
-          <UserPlus className="h-3 w-3" />
-          Gérer
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onOpenChat(team)}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-dark-hover"
+          >
+            <MessageSquare className="h-3 w-3" />
+            Chat
+          </button>
+          <button
+            onClick={() => onManageMembers(team)}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-accent hover:bg-accent/10"
+          >
+            <UserPlus className="h-3 w-3" />
+            Membres
+          </button>
+        </div>
       </div>
     </Card>
   );

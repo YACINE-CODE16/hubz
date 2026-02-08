@@ -19,9 +19,13 @@ public enum NotificationType {
     GOAL_AT_RISK,
 
     // Event notifications
+    EVENT_INVITATION,
     EVENT_REMINDER,
     EVENT_UPDATED,
     EVENT_CANCELLED,
+
+    // Direct messages
+    DIRECT_MESSAGE,
 
     // General
     MENTION,

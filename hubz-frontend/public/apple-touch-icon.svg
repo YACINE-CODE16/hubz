@@ -1,0 +1,7 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" rx="40" fill="#3B82F6"/>
+  <circle cx="90" cy="72" r="28" fill="white"/>
+  <text x="90" y="82" text-anchor="middle" fill="#3B82F6" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="700">H</text>
+  <rect x="50" y="110" width="80" height="10" rx="5" fill="white"/>
+  <rect x="62" y="128" width="56" height="8" rx="4" fill="white" fill-opacity="0.8"/>
+</svg>

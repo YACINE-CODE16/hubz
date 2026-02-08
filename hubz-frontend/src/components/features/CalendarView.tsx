@@ -6,13 +6,14 @@ import {
   ChevronRight,
   Clock,
   Target,
+  Repeat,
 } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import { cn } from '../../lib/utils';
-import type { Event, CreateEventRequest } from '../../types/event';
+import type { Event, CreateEventRequest, UpdateEventRequest, RecurrenceType } from '../../types/event';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -42,8 +43,17 @@ type ViewMode = 'month' | 'week' | 'day';
 interface CalendarViewProps {
   events: Event[];
   onCreateEvent: (data: CreateEventRequest) => void;
-  onDeleteEvent: (id: string) => void;
+  onUpdateEvent?: (id: string, data: UpdateEventRequest) => void;
+  onDeleteEvent: (id: string, deleteAllOccurrences?: boolean) => void;
 }
+
+const RECURRENCE_OPTIONS: { value: RecurrenceType; label: string }[] = [
+  { value: 'NONE', label: 'Ne pas repeter' },
+  { value: 'DAILY', label: 'Tous les jours' },
+  { value: 'WEEKLY', label: 'Toutes les semaines' },
+  { value: 'MONTHLY', label: 'Tous les mois' },
+  { value: 'YEARLY', label: 'Tous les ans' },
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -109,14 +119,20 @@ function computeEventPosition(event: Event): { top: number; height: number } {
 // Main Component
 // ---------------------------------------------------------------------------
 
-export default function CalendarView({ events, onCreateEvent, onDeleteEvent }: CalendarViewProps) {
+export default function CalendarView({ events, onCreateEvent, onUpdateEvent, onDeleteEvent }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  // Default to 'day' on mobile screens (<768px)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) return 'day';
+    return 'month';
+  });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createInitialDate, setCreateInitialDate] = useState<Date | null>(null);
   const [createInitialTime, setCreateInitialTime] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -211,12 +227,31 @@ export default function CalendarView({ events, onCreateEvent, onDeleteEvent }: C
     [onCreateEvent],
   );
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      onDeleteEvent(id);
-      setSelectedEvent(null);
+  const handleDeleteClick = useCallback(
+    (event: Event) => {
+      if (event.isRecurring || event.parentEventId) {
+        // Show confirmation dialog for recurring events
+        setEventToDelete(event);
+        setShowDeleteDialog(true);
+        setSelectedEvent(null);
+      } else {
+        // Directly delete non-recurring events
+        onDeleteEvent(event.id);
+        setSelectedEvent(null);
+      }
     },
     [onDeleteEvent],
+  );
+
+  const handleDeleteConfirm = useCallback(
+    (deleteAll: boolean) => {
+      if (eventToDelete) {
+        onDeleteEvent(eventToDelete.id, deleteAll);
+      }
+      setShowDeleteDialog(false);
+      setEventToDelete(null);
+    },
+    [eventToDelete, onDeleteEvent],
   );
 
   // -- Month helpers -------------------------------------------------------
@@ -242,36 +277,43 @@ export default function CalendarView({ events, onCreateEvent, onDeleteEvent }: C
 
   return (
     <>
-      <Card className="p-6">
+      <Card className="p-3 sm:p-6">
         {/* Controls bar */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {headerText}
-            </h3>
+        <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+          {/* Navigation row */}
+          <div className="flex items-center justify-between sm:justify-start sm:gap-4">
             <div className="flex gap-1">
               <button
                 onClick={goToPrevious}
-                className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                className="rounded-lg p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors sm:p-2"
                 aria-label="Pr\u00e9c\u00e9dent"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={goToNext}
-                className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                className="rounded-lg p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors sm:p-2"
                 aria-label="Suivant"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 sm:text-xl">
+              {headerText}
+            </h3>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Actions row */}
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* View switcher */}
-            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="flex flex-1 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden sm:flex-none">
               {(['month', 'week', 'day'] as const).map((mode) => {
                 const labels: Record<ViewMode, string> = {
+                  month: 'Mois',
+                  week: 'Sem.',
+                  day: 'Jour',
+                };
+                const labelsDesktop: Record<ViewMode, string> = {
                   month: 'Mois',
                   week: 'Semaine',
                   day: 'Jour',
@@ -281,25 +323,26 @@ export default function CalendarView({ events, onCreateEvent, onDeleteEvent }: C
                     key={mode}
                     onClick={() => setViewMode(mode)}
                     className={cn(
-                      'px-3 py-1.5 text-sm font-medium transition-colors',
+                      'flex-1 px-2 py-1.5 text-xs font-medium transition-colors sm:flex-none sm:px-3 sm:text-sm',
                       viewMode === mode
                         ? 'bg-accent text-white'
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800',
                     )}
                   >
-                    {labels[mode]}
+                    <span className="sm:hidden">{labels[mode]}</span>
+                    <span className="hidden sm:inline">{labelsDesktop[mode]}</span>
                   </button>
                 );
               })}
             </div>
 
-            <Button variant="secondary" size="sm" onClick={goToToday}>
+            <Button variant="secondary" size="sm" onClick={goToToday} className="hidden sm:inline-flex">
               Aujourd&apos;hui
             </Button>
 
             <Button size="sm" onClick={() => openCreateModal()}>
               <Plus className="h-4 w-4" />
-              Nouveau
+              <span className="hidden sm:inline">Nouveau</span>
             </Button>
           </div>
         </div>
@@ -356,7 +399,21 @@ export default function CalendarView({ events, onCreateEvent, onDeleteEvent }: C
           isOpen={!!selectedEvent}
           onClose={() => setSelectedEvent(null)}
           event={selectedEvent}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog for Recurring Events */}
+      {showDeleteDialog && eventToDelete && (
+        <DeleteRecurringEventDialog
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setEventToDelete(null);
+          }}
+          onDeleteSingle={() => handleDeleteConfirm(false)}
+          onDeleteAll={() => handleDeleteConfirm(true)}
+          eventTitle={eventToDelete.title}
         />
       )}
 
@@ -411,20 +468,21 @@ function MonthView({
   };
 
   return (
-    <div className="grid grid-cols-7 gap-2">
+    <div className="grid grid-cols-7 gap-1 sm:gap-2">
       {/* Day names header */}
       {DAY_NAMES_SHORT.map((day) => (
         <div
           key={day}
-          className="py-2 text-center text-sm font-semibold text-gray-500 dark:text-gray-400"
+          className="py-1 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 sm:py-2 sm:text-sm"
         >
-          {day}
+          <span className="sm:hidden">{day[0]}</span>
+          <span className="hidden sm:inline">{day}</span>
         </div>
       ))}
 
       {/* Empty cells before first day */}
       {Array.from({ length: startingDayOfWeek }).map((_, i) => (
-        <div key={`empty-${i}`} className="h-24" />
+        <div key={`empty-${i}`} className="h-12 sm:h-24" />
       ))}
 
       {/* Calendar days */}
@@ -438,7 +496,7 @@ function MonthView({
             key={day}
             onClick={() => onDayClick(new Date(year, month, day))}
             className={cn(
-              'relative h-24 rounded-lg border p-2 text-left transition-all hover:shadow-md',
+              'relative h-12 rounded-lg border p-1 text-left transition-all hover:shadow-md sm:h-24 sm:p-2',
               isCurrentDay
                 ? 'border-accent bg-accent/5'
                 : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600',
@@ -447,7 +505,7 @@ function MonthView({
           >
             <span
               className={cn(
-                'inline-flex h-6 w-6 items-center justify-center rounded-full text-sm font-medium',
+                'inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium sm:h-6 sm:w-6 sm:text-sm',
                 isCurrentDay
                   ? 'bg-accent text-white'
                   : 'text-gray-700 dark:text-gray-300',
@@ -455,27 +513,41 @@ function MonthView({
             >
               {day}
             </span>
+            {/* Mobile: dots only */}
             {dayEvents.length > 0 && (
-              <div className="mt-1 space-y-1">
-                {dayEvents.slice(0, 2).map((event) => (
-                  <div
-                    key={event.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEventClick(event);
-                    }}
-                    className="truncate rounded bg-accent/10 px-1 py-0.5 text-xs font-medium text-accent hover:bg-accent/20"
-                  >
-                    {formatTimeHHMM(new Date(event.startTime))}{' '}
-                    {event.title}
-                  </div>
-                ))}
-                {dayEvents.length > 2 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    +{dayEvents.length - 2} autre{dayEvents.length - 2 > 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
+              <>
+                <div className="mt-0.5 flex gap-0.5 sm:hidden">
+                  {dayEvents.slice(0, 3).map((event, idx) => (
+                    <div key={idx} className="h-1.5 w-1.5 rounded-full bg-accent" />
+                  ))}
+                </div>
+                {/* Desktop: event labels */}
+                <div className="mt-1 hidden space-y-1 sm:block">
+                  {dayEvents.slice(0, 2).map((event) => (
+                    <div
+                      key={`${event.id}-${event.startTime}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEventClick(event);
+                      }}
+                      className="flex items-center gap-1 truncate rounded bg-accent/10 px-1 py-0.5 text-xs font-medium text-accent hover:bg-accent/20"
+                    >
+                      {(event.isRecurring || event.parentEventId) && (
+                        <Repeat className="h-3 w-3 flex-shrink-0" />
+                      )}
+                      <span className="truncate">
+                        {formatTimeHHMM(new Date(event.startTime))}{' '}
+                        {event.title}
+                      </span>
+                    </div>
+                  ))}
+                  {dayEvents.length > 2 && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      +{dayEvents.length - 2} autre{dayEvents.length - 2 > 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </button>
         );
@@ -575,9 +647,10 @@ function WeekView({ weekDays, events, today, onSlotClick, onEventClick }: WeekVi
                 const { top, height } = computeEventPosition(event);
                 const startDt = new Date(event.startTime);
                 const endDt = new Date(event.endTime);
+                const isRecurring = event.isRecurring || event.parentEventId;
                 return (
                   <button
-                    key={event.id}
+                    key={`${event.id}-${event.startTime}`}
                     onClick={() => onEventClick(event)}
                     className="absolute left-1 right-1 rounded-md bg-accent/80 px-2 py-1 text-left text-xs text-white shadow-sm hover:bg-accent transition-colors overflow-hidden z-10"
                     style={{
@@ -587,7 +660,10 @@ function WeekView({ weekDays, events, today, onSlotClick, onEventClick }: WeekVi
                     }}
                     title={event.title}
                   >
-                    <div className="font-medium truncate">{event.title}</div>
+                    <div className="flex items-center gap-1 font-medium truncate">
+                      {isRecurring && <Repeat className="h-3 w-3 flex-shrink-0" />}
+                      <span className="truncate">{event.title}</span>
+                    </div>
                     {height >= 30 && (
                       <div className="text-white/80 truncate">
                         {formatTimeHHMM(startDt)} - {formatTimeHHMM(endDt)}
@@ -680,9 +756,10 @@ function DayView({ date, events, today, onSlotClick, onEventClick }: DayViewProp
             const { top, height } = computeEventPosition(event);
             const startDt = new Date(event.startTime);
             const endDt = new Date(event.endTime);
+            const isRecurring = event.isRecurring || event.parentEventId;
             return (
               <button
-                key={event.id}
+                key={`${event.id}-${event.startTime}`}
                 onClick={() => onEventClick(event)}
                 className="absolute left-2 right-2 rounded-md bg-accent/80 px-3 py-2 text-left text-sm text-white shadow-sm hover:bg-accent transition-colors overflow-hidden z-10"
                 style={{
@@ -692,7 +769,10 @@ function DayView({ date, events, today, onSlotClick, onEventClick }: DayViewProp
                 }}
                 title={event.title}
               >
-                <div className="font-semibold truncate">{event.title}</div>
+                <div className="flex items-center gap-1.5 font-semibold truncate">
+                  {isRecurring && <Repeat className="h-4 w-4 flex-shrink-0" />}
+                  <span className="truncate">{event.title}</span>
+                </div>
                 {height >= 40 && (
                   <div className="text-white/80 text-xs">
                     {formatTimeHHMM(startDt)} - {formatTimeHHMM(endDt)}
@@ -740,6 +820,9 @@ function CreateEventModal({ isOpen, onClose, onCreate, initialDate, initialTime 
   const [endDate, setEndDate] = useState(defaultDateStr);
   const [endTime, setEndTime] = useState(defaultEndHour);
   const [objective, setObjective] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>('NONE');
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -751,8 +834,12 @@ function CreateEventModal({ isOpen, onClose, onCreate, initialDate, initialTime 
       startTime: `${startDate}T${startTime}:00`,
       endTime: `${endDate}T${endTime}:00`,
       objective: objective.trim() || undefined,
+      recurrenceType: recurrenceType !== 'NONE' ? recurrenceType : undefined,
+      recurrenceInterval: recurrenceType !== 'NONE' ? recurrenceInterval : undefined,
+      recurrenceEndDate: recurrenceType !== 'NONE' && recurrenceEndDate ? recurrenceEndDate : undefined,
     });
 
+    // Reset form
     setTitle('');
     setDescription('');
     setStartDate('');
@@ -760,16 +847,19 @@ function CreateEventModal({ isOpen, onClose, onCreate, initialDate, initialTime 
     setEndDate('');
     setEndTime('10:00');
     setObjective('');
+    setRecurrenceType('NONE');
+    setRecurrenceInterval(1);
+    setRecurrenceEndDate('');
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Nouvel \u00e9v\u00e9nement">
+    <Modal isOpen={isOpen} onClose={onClose} title="Nouvel evenement">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Titre"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ex: R\u00e9union d'\u00e9quipe"
+          placeholder="Ex: Reunion d'equipe"
           required
         />
 
@@ -780,15 +870,15 @@ function CreateEventModal({ isOpen, onClose, onCreate, initialDate, initialTime 
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="D\u00e9tails de l'\u00e9v\u00e9nement..."
+            placeholder="Details de l'evenement..."
             rows={3}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-gray-600 dark:bg-dark-card dark:text-gray-100 dark:placeholder-gray-500"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <Input
-            label="Date de d\u00e9but"
+            label="Date de debut"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
@@ -803,7 +893,7 @@ function CreateEventModal({ isOpen, onClose, onCreate, initialDate, initialTime 
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <Input
             label="Date de fin"
             type="date"
@@ -827,12 +917,95 @@ function CreateEventModal({ isOpen, onClose, onCreate, initialDate, initialTime 
           placeholder="Ex: Planifier le prochain sprint"
         />
 
-        <div className="flex gap-2">
-          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
+        {/* Recurrence Section */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Repeat className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Recurrence
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Repetition
+              </label>
+              <select
+                value={recurrenceType}
+                onChange={(e) => setRecurrenceType(e.target.value as RecurrenceType)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-gray-600 dark:bg-dark-card dark:text-gray-100"
+              >
+                {RECURRENCE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {recurrenceType !== 'NONE' && (
+              <>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Intervalle
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={recurrenceInterval}
+                        onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-gray-600 dark:bg-dark-card dark:text-gray-100"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {recurrenceType === 'DAILY' && (recurrenceInterval === 1 ? 'jour' : 'jours')}
+                        {recurrenceType === 'WEEKLY' && (recurrenceInterval === 1 ? 'semaine' : 'semaines')}
+                        {recurrenceType === 'MONTHLY' && 'mois'}
+                        {recurrenceType === 'YEARLY' && (recurrenceInterval === 1 ? 'an' : 'ans')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Input
+                    label="Jusqu'au (optionnel)"
+                    type="date"
+                    value={recurrenceEndDate}
+                    onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                  />
+                </div>
+
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {recurrenceInterval === 1 ? (
+                    <>
+                      {recurrenceType === 'DAILY' && 'Se repete tous les jours'}
+                      {recurrenceType === 'WEEKLY' && 'Se repete toutes les semaines'}
+                      {recurrenceType === 'MONTHLY' && 'Se repete tous les mois'}
+                      {recurrenceType === 'YEARLY' && 'Se repete tous les ans'}
+                    </>
+                  ) : (
+                    <>
+                      {recurrenceType === 'DAILY' && `Se repete tous les ${recurrenceInterval} jours`}
+                      {recurrenceType === 'WEEKLY' && `Se repete toutes les ${recurrenceInterval} semaines`}
+                      {recurrenceType === 'MONTHLY' && `Se repete tous les ${recurrenceInterval} mois`}
+                      {recurrenceType === 'YEARLY' && `Se repete tous les ${recurrenceInterval} ans`}
+                    </>
+                  )}
+                  {recurrenceEndDate && ` jusqu'au ${new Date(recurrenceEndDate).toLocaleDateString('fr-FR')}`}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          <Button type="button" variant="secondary" onClick={onClose} className="w-full sm:flex-1">
             Annuler
           </Button>
-          <Button type="submit" className="flex-1">
-            Cr\u00e9er
+          <Button type="submit" className="w-full sm:flex-1">
+            Creer
           </Button>
         </div>
       </form>
@@ -848,7 +1021,7 @@ interface EventDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: Event;
-  onDelete: (id: string) => void;
+  onDelete: (event: Event) => void;
 }
 
 function EventDetailModal({ isOpen, onClose, event, onDelete }: EventDetailModalProps) {
@@ -856,9 +1029,45 @@ function EventDetailModal({ isOpen, onClose, event, onDelete }: EventDetailModal
   const endTime = new Date(event.endTime);
   const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
 
+  const getRecurrenceLabel = (type: RecurrenceType | undefined, interval: number | undefined) => {
+    if (!type || type === 'NONE') return null;
+    const i = interval || 1;
+    if (i === 1) {
+      switch (type) {
+        case 'DAILY': return 'Tous les jours';
+        case 'WEEKLY': return 'Toutes les semaines';
+        case 'MONTHLY': return 'Tous les mois';
+        case 'YEARLY': return 'Tous les ans';
+      }
+    } else {
+      switch (type) {
+        case 'DAILY': return `Tous les ${i} jours`;
+        case 'WEEKLY': return `Toutes les ${i} semaines`;
+        case 'MONTHLY': return `Tous les ${i} mois`;
+        case 'YEARLY': return `Tous les ${i} ans`;
+      }
+    }
+    return null;
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={event.title}>
       <div className="space-y-4">
+        {/* Recurring Event Indicator */}
+        {(event.isRecurring || event.parentEventId) && (
+          <div className="flex items-center gap-2 rounded-lg bg-purple-50 px-3 py-2 dark:bg-purple-900/20">
+            <Repeat className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+              {getRecurrenceLabel(event.recurrenceType, event.recurrenceInterval)}
+              {event.recurrenceEndDate && (
+                <span className="text-purple-600 dark:text-purple-400">
+                  {' '}jusqu'au {new Date(event.recurrenceEndDate).toLocaleDateString('fr-FR')}
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+
         {event.description && (
           <div>
             <p className="text-sm text-gray-700 dark:text-gray-300">{event.description}</p>
@@ -896,7 +1105,7 @@ function EventDetailModal({ isOpen, onClose, event, onDelete }: EventDetailModal
         <div className="flex gap-2">
           <Button
             variant="secondary"
-            onClick={() => onDelete(event.id)}
+            onClick={() => onDelete(event)}
             className="flex-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
           >
             Supprimer
@@ -905,6 +1114,69 @@ function EventDetailModal({ isOpen, onClose, event, onDelete }: EventDetailModal
             Fermer
           </Button>
         </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ===========================================================================
+// DELETE RECURRING EVENT DIALOG
+// ===========================================================================
+
+interface DeleteRecurringEventDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onDeleteSingle: () => void;
+  onDeleteAll: () => void;
+  eventTitle: string;
+}
+
+function DeleteRecurringEventDialog({
+  isOpen,
+  onClose,
+  onDeleteSingle,
+  onDeleteAll,
+  eventTitle,
+}: DeleteRecurringEventDialogProps) {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Supprimer l'evenement recurrent">
+      <div className="space-y-4">
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          L'evenement <span className="font-semibold">"{eventTitle}"</span> fait partie d'une serie recurrente.
+          Que souhaitez-vous supprimer ?
+        </p>
+
+        <div className="space-y-2">
+          <Button
+            variant="secondary"
+            onClick={onDeleteSingle}
+            className="w-full justify-start text-left"
+          >
+            <div>
+              <p className="font-medium">Cette occurrence uniquement</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Les autres occurrences de la serie seront conservees
+              </p>
+            </div>
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={onDeleteAll}
+            className="w-full justify-start text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+          >
+            <div>
+              <p className="font-medium">Toute la serie</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Toutes les occurrences de cet evenement seront supprimees
+              </p>
+            </div>
+          </Button>
+        </div>
+
+        <Button variant="secondary" onClick={onClose} className="w-full">
+          Annuler
+        </Button>
       </div>
     </Modal>
   );

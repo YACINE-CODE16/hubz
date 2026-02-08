@@ -4,11 +4,14 @@ import com.hubz.application.dto.request.CreateTaskRequest;
 import com.hubz.application.dto.request.UpdateTaskRequest;
 import com.hubz.application.dto.request.UpdateTaskStatusRequest;
 import com.hubz.application.dto.response.TaskResponse;
+import com.hubz.application.port.out.TagRepositoryPort;
+import com.hubz.application.port.out.TaskHistoryRepositoryPort;
 import com.hubz.application.port.out.TaskRepositoryPort;
 import com.hubz.domain.enums.TaskPriority;
 import com.hubz.domain.enums.TaskStatus;
 import com.hubz.domain.exception.TaskNotFoundException;
 import com.hubz.domain.model.Task;
+import com.hubz.domain.model.TaskHistory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +39,12 @@ class TaskServiceTest {
 
     @Mock
     private TaskRepositoryPort taskRepository;
+
+    @Mock
+    private TagRepositoryPort tagRepository;
+
+    @Mock
+    private TaskHistoryRepositoryPort taskHistoryRepository;
 
     @Mock
     private AuthorizationService authorizationService;
@@ -102,6 +112,7 @@ class TaskServiceTest {
             // Given
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, creatorId);
             when(taskRepository.save(any(Task.class))).thenReturn(testTask);
+            when(tagRepository.findTagsByTaskId(any())).thenReturn(Collections.emptyList());
 
             // When
             TaskResponse response = taskService.create(createRequest, organizationId, creatorId);
@@ -176,6 +187,7 @@ class TaskServiceTest {
             // Given
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, creatorId);
             when(taskRepository.findByOrganizationId(organizationId)).thenReturn(List.of(testTask));
+            when(tagRepository.findTagsByTaskId(any())).thenReturn(Collections.emptyList());
 
             // When
             List<TaskResponse> tasks = taskService.getByOrganization(organizationId, creatorId);
@@ -211,6 +223,7 @@ class TaskServiceTest {
         void shouldGetTasksByAssignee() {
             // Given
             when(taskRepository.findByAssigneeId(assigneeId)).thenReturn(List.of(testTask));
+            when(tagRepository.findTagsByTaskId(any())).thenReturn(Collections.emptyList());
 
             // When
             List<TaskResponse> tasks = taskService.getByUser(assigneeId);
@@ -246,6 +259,7 @@ class TaskServiceTest {
             when(taskRepository.findById(testTask.getId())).thenReturn(Optional.of(testTask));
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, creatorId);
             when(taskRepository.save(any(Task.class))).thenReturn(testTask);
+            when(tagRepository.findTagsByTaskId(any())).thenReturn(Collections.emptyList());
 
             // When
             TaskResponse response = taskService.update(testTask.getId(), updateRequest, creatorId);
@@ -265,6 +279,7 @@ class TaskServiceTest {
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, creatorId);
             ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
             when(taskRepository.save(taskCaptor.capture())).thenReturn(testTask);
+            when(tagRepository.findTagsByTaskId(any())).thenReturn(Collections.emptyList());
 
             // When
             taskService.update(testTask.getId(), updateRequest, creatorId);
@@ -313,6 +328,7 @@ class TaskServiceTest {
             when(taskRepository.findById(testTask.getId())).thenReturn(Optional.of(testTask));
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, creatorId);
             when(taskRepository.save(any(Task.class))).thenReturn(testTask);
+            when(tagRepository.findTagsByTaskId(any())).thenReturn(Collections.emptyList());
 
             // When
             TaskResponse response = taskService.updateStatus(testTask.getId(), statusRequest, creatorId);
@@ -332,6 +348,7 @@ class TaskServiceTest {
             doNothing().when(authorizationService).checkOrganizationAccess(organizationId, creatorId);
             ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
             when(taskRepository.save(taskCaptor.capture())).thenReturn(testTask);
+            when(tagRepository.findTagsByTaskId(any())).thenReturn(Collections.emptyList());
 
             // When
             taskService.updateStatus(testTask.getId(), statusRequest, creatorId);

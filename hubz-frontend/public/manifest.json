@@ -1,0 +1,53 @@
+{
+  "name": "Hubz",
+  "short_name": "Hubz",
+  "description": "Productivity app for managing organizations, teams, tasks, goals, and personal habits",
+  "theme_color": "#3B82F6",
+  "background_color": "#0A0A0F",
+  "display": "standalone",
+  "start_url": "/",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    {
+      "src": "pwa-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-maskable-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "pwa-maskable-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hub",
+      "short_name": "Hub",
+      "description": "Go to Hub",
+      "url": "/hub",
+      "icons": [{ "src": "pwa-192x192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Personal Space",
+      "short_name": "Personal",
+      "description": "Go to Personal Space",
+      "url": "/personal",
+      "icons": [{ "src": "pwa-192x192.svg", "sizes": "192x192" }]
+    }
+  ]
+}

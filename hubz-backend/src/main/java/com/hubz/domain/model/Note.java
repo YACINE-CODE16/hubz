@@ -17,6 +17,7 @@ public class Note {
     private String title;
     private String content;
     private String category;
+    private UUID folderId;
     private UUID organizationId;
     private UUID createdById;
     private LocalDateTime createdAt;

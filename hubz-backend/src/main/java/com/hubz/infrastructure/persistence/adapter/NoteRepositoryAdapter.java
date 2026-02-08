@@ -46,6 +46,20 @@ public class NoteRepositoryAdapter implements NoteRepositoryPort {
     }
 
     @Override
+    public List<Note> findByOrganizationIdAndFolderId(UUID organizationId, UUID folderId) {
+        return jpaRepository.findByOrganizationIdAndFolderIdOrderByUpdatedAtDesc(organizationId, folderId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Note> findByOrganizationIdAndFolderIdIsNull(UUID organizationId) {
+        return jpaRepository.findByOrganizationIdAndFolderIdIsNullOrderByUpdatedAtDesc(organizationId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void delete(Note note) {
         jpaRepository.deleteById(note.getId());
     }

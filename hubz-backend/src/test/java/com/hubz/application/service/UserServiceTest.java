@@ -1,11 +1,17 @@
 package com.hubz.application.service;
 
 import com.hubz.application.dto.request.ChangePasswordRequest;
+import com.hubz.application.dto.request.DeleteAccountRequest;
 import com.hubz.application.dto.request.UpdateProfileRequest;
 import com.hubz.application.dto.response.UserResponse;
+import com.hubz.application.port.out.OrganizationMemberRepositoryPort;
+import com.hubz.application.port.out.OrganizationRepositoryPort;
 import com.hubz.application.port.out.UserRepositoryPort;
+import com.hubz.domain.enums.MemberRole;
 import com.hubz.domain.exception.InvalidPasswordException;
 import com.hubz.domain.exception.UserNotFoundException;
+import com.hubz.domain.model.Organization;
+import com.hubz.domain.model.OrganizationMember;
 import com.hubz.domain.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,9 +22,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,7 +47,16 @@ class UserServiceTest {
     private UserRepositoryPort userRepositoryPort;
 
     @Mock
+    private OrganizationMemberRepositoryPort memberRepositoryPort;
+
+    @Mock
+    private OrganizationRepositoryPort organizationRepositoryPort;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private UserService userService;
@@ -328,6 +348,255 @@ class UserServiceTest {
             verify(userRepositoryPort).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
             assertThat(savedUser.getEmail()).isEqualTo(userEmail);
+        }
+    }
+
+    @Nested
+    @DisplayName("Profile Photo Tests")
+    class ProfilePhotoTests {
+
+        @Test
+        @DisplayName("Should successfully upload profile photo")
+        void shouldUploadProfilePhoto() throws IOException {
+            // Given
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "profile.jpg",
+                    "image/jpeg",
+                    "test image content".getBytes()
+            );
+            String expectedPath = "profile-photos/" + testUser.getId() + ".jpg";
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+            when(fileStorageService.storeProfilePhoto(file, testUser.getId())).thenReturn(expectedPath);
+            when(userRepositoryPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            UserResponse response = userService.uploadProfilePhoto(userEmail, file);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getProfilePhotoUrl()).isEqualTo(expectedPath);
+
+            verify(fileStorageService).storeProfilePhoto(file, testUser.getId());
+            verify(userRepositoryPort).save(any(User.class));
+        }
+
+        @Test
+        @DisplayName("Should throw UserNotFoundException when uploading photo for unknown user")
+        void shouldThrowExceptionWhenUserNotFoundForUpload() {
+            // Given
+            String unknownEmail = "unknown@example.com";
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "profile.jpg",
+                    "image/jpeg",
+                    "test image content".getBytes()
+            );
+
+            when(userRepositoryPort.findByEmail(unknownEmail)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> userService.uploadProfilePhoto(unknownEmail, file))
+                    .isInstanceOf(UserNotFoundException.class);
+
+            verify(userRepositoryPort).findByEmail(unknownEmail);
+            verifyNoInteractions(fileStorageService);
+        }
+
+        @Test
+        @DisplayName("Should successfully delete profile photo")
+        void shouldDeleteProfilePhoto() throws IOException {
+            // Given
+            testUser.setProfilePhotoUrl("profile-photos/" + testUser.getId() + ".jpg");
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+            when(userRepositoryPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            UserResponse response = userService.deleteProfilePhoto(userEmail);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getProfilePhotoUrl()).isNull();
+
+            verify(fileStorageService).deleteProfilePhoto(testUser.getId());
+            verify(userRepositoryPort).save(any(User.class));
+        }
+
+        @Test
+        @DisplayName("Should handle deletion when no photo exists")
+        void shouldHandleDeletionWhenNoPhotoExists() {
+            // Given
+            testUser.setProfilePhotoUrl(null);
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+
+            // When
+            UserResponse response = userService.deleteProfilePhoto(userEmail);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getProfilePhotoUrl()).isNull();
+
+            verifyNoInteractions(fileStorageService);
+        }
+    }
+
+    @Nested
+    @DisplayName("Delete Account Tests")
+    class DeleteAccountTests {
+
+        @Test
+        @DisplayName("Should successfully delete account with no organizations")
+        void shouldDeleteAccountWithNoOrganizations() {
+            // Given
+            DeleteAccountRequest request = DeleteAccountRequest.builder()
+                    .password("correctPassword")
+                    .build();
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+            when(passwordEncoder.matches("correctPassword", "encodedPassword")).thenReturn(true);
+            when(memberRepositoryPort.findByUserId(testUser.getId())).thenReturn(Collections.emptyList());
+
+            // When
+            userService.deleteAccount(userEmail, request);
+
+            // Then
+            verify(passwordEncoder).matches("correctPassword", "encodedPassword");
+            verify(memberRepositoryPort).deleteAllByUserId(testUser.getId());
+            verify(userRepositoryPort).deleteById(testUser.getId());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidPasswordException when password is incorrect")
+        void shouldThrowExceptionWhenPasswordIncorrect() {
+            // Given
+            DeleteAccountRequest request = DeleteAccountRequest.builder()
+                    .password("wrongPassword")
+                    .build();
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+            when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
+
+            // When & Then
+            assertThatThrownBy(() -> userService.deleteAccount(userEmail, request))
+                    .isInstanceOf(InvalidPasswordException.class);
+
+            verify(passwordEncoder).matches("wrongPassword", "encodedPassword");
+            verify(memberRepositoryPort, never()).deleteAllByUserId(any());
+            verify(userRepositoryPort, never()).deleteById(any());
+        }
+
+        @Test
+        @DisplayName("Should transfer ownership when deleting owner account")
+        void shouldTransferOwnershipWhenDeletingOwnerAccount() {
+            // Given
+            UUID orgId = UUID.randomUUID();
+            UUID adminId = UUID.randomUUID();
+
+            DeleteAccountRequest request = DeleteAccountRequest.builder()
+                    .password("correctPassword")
+                    .build();
+
+            OrganizationMember ownerMembership = OrganizationMember.builder()
+                    .id(UUID.randomUUID())
+                    .organizationId(orgId)
+                    .userId(testUser.getId())
+                    .role(MemberRole.OWNER)
+                    .build();
+
+            OrganizationMember adminMembership = OrganizationMember.builder()
+                    .id(UUID.randomUUID())
+                    .organizationId(orgId)
+                    .userId(adminId)
+                    .role(MemberRole.ADMIN)
+                    .build();
+
+            Organization org = Organization.builder()
+                    .id(orgId)
+                    .name("Test Org")
+                    .ownerId(testUser.getId())
+                    .build();
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+            when(passwordEncoder.matches("correctPassword", "encodedPassword")).thenReturn(true);
+            when(memberRepositoryPort.findByUserId(testUser.getId())).thenReturn(List.of(ownerMembership));
+            when(memberRepositoryPort.findByOrganizationId(orgId)).thenReturn(List.of(ownerMembership, adminMembership));
+            when(organizationRepositoryPort.findById(orgId)).thenReturn(Optional.of(org));
+            when(memberRepositoryPort.save(any(OrganizationMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(organizationRepositoryPort.save(any(Organization.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            userService.deleteAccount(userEmail, request);
+
+            // Then
+            ArgumentCaptor<OrganizationMember> memberCaptor = ArgumentCaptor.forClass(OrganizationMember.class);
+            verify(memberRepositoryPort).save(memberCaptor.capture());
+            OrganizationMember savedMember = memberCaptor.getValue();
+            assertThat(savedMember.getRole()).isEqualTo(MemberRole.OWNER);
+            assertThat(savedMember.getUserId()).isEqualTo(adminId);
+
+            ArgumentCaptor<Organization> orgCaptor = ArgumentCaptor.forClass(Organization.class);
+            verify(organizationRepositoryPort).save(orgCaptor.capture());
+            Organization savedOrg = orgCaptor.getValue();
+            assertThat(savedOrg.getOwnerId()).isEqualTo(adminId);
+
+            verify(memberRepositoryPort).deleteAllByUserId(testUser.getId());
+            verify(userRepositoryPort).deleteById(testUser.getId());
+        }
+
+        @Test
+        @DisplayName("Should delete organization when owner deletes and no other members")
+        void shouldDeleteOrganizationWhenNoOtherMembers() {
+            // Given
+            UUID orgId = UUID.randomUUID();
+
+            DeleteAccountRequest request = DeleteAccountRequest.builder()
+                    .password("correctPassword")
+                    .build();
+
+            OrganizationMember ownerMembership = OrganizationMember.builder()
+                    .id(UUID.randomUUID())
+                    .organizationId(orgId)
+                    .userId(testUser.getId())
+                    .role(MemberRole.OWNER)
+                    .build();
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+            when(passwordEncoder.matches("correctPassword", "encodedPassword")).thenReturn(true);
+            when(memberRepositoryPort.findByUserId(testUser.getId())).thenReturn(List.of(ownerMembership));
+            when(memberRepositoryPort.findByOrganizationId(orgId)).thenReturn(List.of(ownerMembership));
+
+            // When
+            userService.deleteAccount(userEmail, request);
+
+            // Then
+            verify(organizationRepositoryPort).deleteById(orgId);
+            verify(memberRepositoryPort).deleteAllByUserId(testUser.getId());
+            verify(userRepositoryPort).deleteById(testUser.getId());
+        }
+
+        @Test
+        @DisplayName("Should delete profile photo when deleting account")
+        void shouldDeleteProfilePhotoWhenDeletingAccount() throws IOException {
+            // Given
+            testUser.setProfilePhotoUrl("profile-photos/" + testUser.getId() + ".jpg");
+
+            DeleteAccountRequest request = DeleteAccountRequest.builder()
+                    .password("correctPassword")
+                    .build();
+
+            when(userRepositoryPort.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+            when(passwordEncoder.matches("correctPassword", "encodedPassword")).thenReturn(true);
+            when(memberRepositoryPort.findByUserId(testUser.getId())).thenReturn(Collections.emptyList());
+
+            // When
+            userService.deleteAccount(userEmail, request);
+
+            // Then
+            verify(fileStorageService).deleteProfilePhoto(testUser.getId());
+            verify(userRepositoryPort).deleteById(testUser.getId());
         }
     }
 }

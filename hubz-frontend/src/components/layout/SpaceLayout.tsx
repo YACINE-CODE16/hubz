@@ -1,16 +1,20 @@
 import { type ReactNode, useState } from 'react';
 import Sidebar, { type SpaceType } from './Sidebar';
 import Header from './Header';
+import ChatbotPanel from '../features/ChatbotPanel';
 
 interface SpaceLayoutProps {
   spaceType: SpaceType;
   basePath: string;
   title: string;
   color?: string | null;
+  logoUrl?: string | null;
+  icon?: string | null;
+  organizationId?: string;
   children: ReactNode;
 }
 
-export default function SpaceLayout({ spaceType, basePath, title, color, children }: SpaceLayoutProps) {
+export default function SpaceLayout({ spaceType, basePath, title, color, logoUrl, icon, organizationId, children }: SpaceLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -20,6 +24,10 @@ export default function SpaceLayout({ spaceType, basePath, title, color, childre
         basePath={basePath}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        logoUrl={logoUrl}
+        color={color}
+        icon={icon}
+        title={title}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -33,6 +41,9 @@ export default function SpaceLayout({ spaceType, basePath, title, color, childre
           {children}
         </main>
       </div>
+
+      {/* Chatbot Panel */}
+      <ChatbotPanel organizationId={organizationId} />
     </div>
   );
 }

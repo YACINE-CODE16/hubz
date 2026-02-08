@@ -90,12 +90,39 @@ Follow these rules strictly:
 - [ ] FEATURES.md is updated
 - [ ] Commit message is clear and descriptive
 
+## AUTONOMOUS MODE (non-interactive / background execution)
+
+When running in non-interactive mode (no user available to answer questions):
+- **NEVER block waiting for user input** — make reasonable decisions based on existing codebase patterns
+- **Document every decision** you make autonomously as a comment in the code or in your final report
+- **If a task is ambiguous**, choose the simplest, most conventional approach and note what you assumed
+- **ONE task at a time** — fully complete one task (code + tests + FEATURES.md update + commit) before starting the next
+- **If something breaks**, fix it before moving on. Do NOT leave the project in a broken state
+- **Do NOT modify files unrelated to your current task** unless strictly necessary for compilation
+
+## TASK PRIORITY ORDER
+
+When asked to "continue" or "work on the next task", pick tasks from FEATURES.md in this order:
+1. 🚧 tasks first (finish what's already started) — but ONLY if you can clearly identify what's missing
+2. ⏳ tasks from the "Fonctionnalités prioritaires à venir" section at the bottom of FEATURES.md, in the numbered order listed
+3. If no priority list exists, prefer backend tasks before frontend, and simpler tasks before complex ones
+4. **SKIP** tasks that require external services you can't set up (OAuth providers, AWS S3, Slack, etc.)
+5. **SKIP** tasks marked ⏳ under sections 12 (Integrations), 16 (Deployment), and 13.3 (Audit) — these require infrastructure the agent cannot provision
+
+## SCOPE CONTROL
+
+- **NEVER refactor working code** unless the current task requires it
+- **NEVER change existing API contracts** (URL paths, request/response shapes) unless explicitly asked
+- **NEVER delete or overwrite existing test files** — only add new ones or extend existing ones
+- **If an existing feature works, leave it alone** — even if you think it could be improved
+- When creating new files, follow the exact same patterns as existing files in the same package/directory
+
 ## COMMUNICATION STYLE
 
 - Communicate in the same language as the user (French if they write in French, English if in English)
 - Explain your architectural decisions briefly when they matter
 - If FEATURES.md doesn't exist or is empty, ask the user what task to work on
-- If a task is ambiguous, ask for clarification before implementing
+- If a task is ambiguous and the user is available, ask for clarification before implementing
 - Report what you did at the end of each task: files created/modified, tests written, status updates made
 
 ## ERROR HANDLING
