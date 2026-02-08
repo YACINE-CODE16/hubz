@@ -1,39 +1,55 @@
+# =============================================================================
+# Hubz - Development Docker Compose Configuration
+# =============================================================================
+# This file is for LOCAL DEVELOPMENT only.
+# For production, use docker-compose.prod.yml
+#
+# Usage:
+#   Start:  docker-compose up -d
+#   Stop:   docker-compose down
+#   Logs:   docker-compose logs -f
+# =============================================================================
+
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: hubz-postgres-dev
     environment:
-      POSTGRES_DB: hubzdb
-      POSTGRES_USER: hubz
-      POSTGRES_PASSWORD: hubz
+      POSTGRES_DB: ${DB_NAME:-hubzdb}
+      POSTGRES_USER: ${DB_USERNAME:-hubz}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hubz_dev_password}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hubz"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-hubz}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   backend:
     build: ./hubz-backend
+    container_name: hubz-backend-dev
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/hubzdb
-      SPRING_DATASOURCE_USERNAME: hubz
-      SPRING_DATASOURCE_PASSWORD: hubz
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-dev}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-hubzdb}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-hubz}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-hubz_dev_password}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      JWT_SECRET: dev-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm-change-in-production}
     depends_on:
       postgres:
         condition: service_healthy
 
   frontend:
     build: ./hubz-frontend
+    container_name: hubz-frontend-dev
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - backend
 
 volumes:
   pgdata:
+    name: hubz-pgdata-dev
