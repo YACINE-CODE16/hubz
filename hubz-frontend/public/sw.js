@@ -24,6 +24,9 @@ const CACHE_NAMES = {
   pages: `hubz-pages-${CACHE_VERSION}`,
 };
 
+// Workbox will inject the manifest here
+const WB_MANIFEST = self.__WB_MANIFEST || [];
+
 // Static assets to precache on install
 const PRECACHE_ASSETS = [
   '/',
@@ -33,6 +36,7 @@ const PRECACHE_ASSETS = [
   '/pwa-192x192.svg',
   '/pwa-512x512.svg',
   '/apple-touch-icon.svg',
+  ...WB_MANIFEST.map(entry => entry.url),
 ];
 
 // API cache settings
