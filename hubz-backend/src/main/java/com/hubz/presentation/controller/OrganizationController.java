@@ -77,8 +77,9 @@ public class OrganizationController {
             @ApiResponse(responseCode = "401", description = "Not authenticated")
     })
     @GetMapping
-    public ResponseEntity<List<OrganizationResponse>> getAll() {
-        return ResponseEntity.ok(organizationService.getAll());
+    public ResponseEntity<List<OrganizationResponse>> getAll(Authentication authentication) {
+        UUID userId = resolveUserId(authentication);
+        return ResponseEntity.ok(organizationService.getAllForUser(userId));
     }
 
     @Operation(

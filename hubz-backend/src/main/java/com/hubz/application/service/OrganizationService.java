@@ -67,8 +67,15 @@ public class OrganizationService {
         return toResponse(saved);
     }
 
-    public List<OrganizationResponse> getAll() {
-        return organizationRepository.findAll().stream()
+    public List<OrganizationResponse> getAllForUser(UUID userId) {
+        List<UUID> orgIds = memberRepository.findByUserId(userId).stream()
+                .map(OrganizationMember::getOrganizationId)
+                .toList();
+
+        return orgIds.stream()
+                .map(organizationRepository::findById)
+                .filter(java.util.Optional::isPresent)
+                .map(java.util.Optional::get)
                 .map(this::toResponse)
                 .toList();
     }
