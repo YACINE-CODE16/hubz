@@ -33,7 +33,7 @@
     "@tiptap/extension-link": "^2.10.0",
     "@tiptap/extension-placeholder": "^2.10.0",
     "@tiptap/extension-underline": "^2.10.0",
-    "@tiptap/react": "^2.10.0",
+    "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^2.10.0",
     "autoprefixer": "^10.4.23",
     "axios": "^1.13.3",
