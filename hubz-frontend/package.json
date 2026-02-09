@@ -28,7 +28,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.2",
     "@stomp/stompjs": "^7.0.0",
-    "@tiptap/extension-code-block-lowlight": "^2.10.0",
+    "@tiptap/extension-code-block-lowlight": "^3.19.0",
     "@tiptap/extension-image": "^2.10.0",
     "@tiptap/extension-link": "^2.10.0",
     "@tiptap/extension-placeholder": "^2.10.0",
