@@ -38,7 +38,7 @@ jobs:
         run: ./mvnw clean package -DskipTests -B -q
 
       - name: Upload backend artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-jar-${{ github.ref_name }}
           path: hubz-backend/target/*.jar
@@ -71,7 +71,7 @@ jobs:
           VITE_API_URL: /api
 
       - name: Upload frontend artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-dist-${{ github.ref_name }}
           path: hubz-frontend/dist/
